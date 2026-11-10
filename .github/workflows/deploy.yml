@@ -20,9 +20,9 @@ jobs:
           key: ${{ secrets.SSH_PRIVATE_KEY }}
           port: ${{ secrets.SSH_PORT }} # Sesuaikan jika pakai port khusus
           script: |
-            cd /var/www/onu-activator
+            cd /var/www/odc-odp-app
             git reset --hard origin/main
             git pull origin main
             npm install --production
-            pm2 restart onu-activator || pm2 start server.js --name "onu-activator"
+            pm2 restart odc-odp || pm2 start server.js --name "odc-odp"
             pm2 save
