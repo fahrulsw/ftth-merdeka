@@ -585,6 +585,45 @@
       .stats-grid { grid-template-columns: repeat(2, 1fr); }
     }
 
+
+    /* ===== DASHBOARD TAMBAHAN ===== */
+    .dash-grid { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:16px; margin-bottom:24px; }
+    .dash-grid > .card { margin:0; }
+    .dash-body { padding:4px 18px 16px; }
+    .dash-empty { padding:18px 0; color:var(--muted); font-size:0.85rem; text-align:center; }
+    .dash-tk-counts { display:grid; grid-template-columns:repeat(3,1fr); gap:10px; padding:14px 18px 6px; }
+    .dash-tk-count { background:var(--surface2); border:1px solid var(--border); border-radius:10px; padding:10px 12px; }
+    .dash-tk-count b { display:block; font-size:1.5rem; line-height:1.1; font-family:'Plus Jakarta Sans',sans-serif; }
+    .dash-tk-count span { font-size:0.72rem; color:var(--muted); text-transform:uppercase; letter-spacing:.5px; }
+    .dash-tk-row { display:flex; align-items:center; gap:10px; padding:10px 0; border-bottom:1px solid var(--border); cursor:pointer; }
+    .dash-tk-row:last-child { border-bottom:0; }
+    .dash-tk-row:hover .dash-tk-nama { color:var(--accent); }
+    .dash-tk-main { flex:1; min-width:0; }
+    .dash-tk-nama { font-weight:600; font-size:0.9rem; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+    .dash-tk-sub { font-size:0.75rem; color:var(--muted); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+    .dash-tk-umur { font-size:0.75rem; color:var(--muted); white-space:nowrap; text-align:right; }
+    .dash-tk-umur.lama { color:var(--red); font-weight:600; }
+    .dash-bar-row { padding:9px 0; cursor:pointer; }
+    .dash-bar-top { display:flex; justify-content:space-between; gap:10px; font-size:0.85rem; margin-bottom:6px; }
+    .dash-bar-top small { color:var(--muted); font-size:0.75rem; }
+    .dash-bar { height:8px; border-radius:99px; background:var(--surface2); overflow:hidden; }
+    .dash-bar > i { display:block; height:100%; border-radius:99px; }
+    .dash-stack { display:flex; height:14px; border-radius:99px; overflow:hidden; background:var(--surface2); margin:14px 0 12px; }
+    .dash-legend { display:flex; flex-wrap:wrap; gap:8px 18px; font-size:0.85rem; }
+    .dash-legend span i { display:inline-block; width:10px; height:10px; border-radius:3px; margin-right:6px; }
+    .dash-legend b { margin-left:4px; }
+    .dash-cols { display:flex; align-items:flex-end; gap:10px; height:130px; padding-top:10px; }
+    .dash-col { flex:1; display:flex; flex-direction:column; align-items:center; justify-content:flex-end; height:100%; gap:6px; font-size:0.75rem; color:var(--muted); }
+    .dash-col > i { display:block; width:100%; max-width:38px; border-radius:6px 6px 2px 2px; background:var(--accent); opacity:.85; }
+    .dash-col b { color:var(--text); font-size:0.8rem; }
+    .dash-ok { display:flex; justify-content:space-between; align-items:center; gap:10px; padding:11px 0; border-bottom:1px solid var(--border); font-size:0.88rem; }
+    .dash-ok:last-child { border-bottom:0; }
+    .dash-pill { min-width:34px; text-align:center; padding:3px 10px; border-radius:99px; font-weight:700; font-size:0.8rem; }
+    .dash-pill.ok { background:rgba(16,185,129,.15); color:var(--green); }
+    .dash-pill.warn { background:rgba(245,158,11,.16); color:var(--yellow); }
+    .dash-link { font-size:0.8rem; color:var(--accent); cursor:pointer; background:none; border:0; padding:0; }
+    @media (max-width: 900px) { .dash-grid { grid-template-columns:1fr; } }
+
     /* ===== MOBILE RESPONSIVE ===== */
 
     /* Hamburger button */
@@ -660,7 +699,75 @@
       font-family: 'Inter', sans-serif;
     }
     .bottom-nav-item.active { color: var(--accent); }
+    .bottom-nav-item { position: relative; }
+    /* Lencana jumlah tiket yang belum dikerjakan */
+    .tk-badge {
+      display: none; min-width: 18px; height: 18px; padding: 0 5px; box-sizing: border-box;
+      border-radius: 9px; background: var(--red, #e4061e); color: #fff;
+      font-size: 0.65rem; font-weight: 700; line-height: 18px; text-align: center;
+    }
+    .tk-badge.show { display: inline-block; }
+    .bottom-nav-item .tk-badge { position: absolute; top: 0; left: 50%; margin-left: 4px; }
+    .nav-item .tk-badge { margin-left: auto; }
     .bottom-nav-item svg { width: 22px; height: 22px; }
+
+    /* ===== Popup detail tiket ===== */
+    #tiket-detail-body { display: flex; flex-direction: column; gap: 18px; }
+    .tkd-meta { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+    .tkd-meta .tkd-when { margin-left: auto; font-size: 0.78rem; color: var(--muted); }
+    .tkd-tag { font-size: 0.75rem; font-weight: 600; padding: 3px 10px; border-radius: 999px; background: var(--surface2); color: var(--text); border: 1px solid var(--border); }
+    /* Garis tahapan: simpul tersambung seperti jalur kabel fiber */
+    .tkd-steps { list-style: none; display: flex; margin: 0; padding: 4px 0 0; }
+    .tkd-step { flex: 1; position: relative; display: flex; flex-direction: column; align-items: center; gap: 8px; min-width: 0; }
+    .tkd-step + .tkd-step::before { content: ''; position: absolute; top: 13px; right: 50%; width: 100%; height: 2px; background: var(--border); }
+    .tkd-step.done::before, .tkd-step.cur::before { background: var(--accent); }
+    .tkd-node { position: relative; z-index: 1; width: 20px; height: 20px; box-sizing: border-box; border-radius: 50%; border: 2px solid var(--border); background: var(--surface); display: flex; align-items: center; justify-content: center; margin-top: 3px; color: var(--bg); }
+    .tkd-step.done .tkd-node { background: var(--accent); border-color: var(--accent); }
+    .tkd-step.cur .tkd-node { background: var(--accent); border-color: var(--accent); box-shadow: 0 0 0 5px color-mix(in srgb, var(--accent) 25%, transparent); }
+    .tkd-step.cur .tkd-node::after { content: ''; width: 6px; height: 6px; border-radius: 50%; background: var(--bg); }
+    .tkd-node svg { width: 11px; height: 11px; }
+    .tkd-step-l { font-size: 0.72rem; color: var(--muted); text-align: center; white-space: nowrap; }
+    .tkd-step.cur .tkd-step-l { color: var(--text); font-weight: 700; }
+    .tkd-step.done .tkd-step-l { color: var(--text); }
+    .tkd-cust { display: flex; align-items: center; gap: 12px; padding: 14px; border-radius: 16px; background: var(--surface2); border: 1px solid var(--border); }
+    .tkd-avatar { flex: none; width: 46px; height: 46px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 1rem; color: var(--accent); background: color-mix(in srgb, var(--accent) 16%, transparent); }
+    .tkd-cust-main { min-width: 0; flex: 1; }
+    .tkd-cust-nama { font-weight: 700; font-size: 1rem; overflow-wrap: anywhere; }
+    .tkd-cust-sub { font-size: 0.82rem; color: var(--muted); margin-top: 2px; overflow-wrap: anywhere; }
+    .tkd-cust .tkd-kontak { display: flex; gap: 8px; flex: none; }
+    .tkd-kv { display: grid; grid-template-columns: minmax(78px, 96px) 1fr; gap: 10px 12px; font-size: 0.88rem; margin: 0; }
+    .tkd-kv dt { color: var(--muted); }
+    .tkd-kv dd { margin: 0; overflow-wrap: anywhere; line-height: 1.5; }
+    .tkd-team { display: flex; flex-wrap: wrap; gap: 8px; }
+    .tkd-chip { display: inline-flex; align-items: center; gap: 8px; padding: 5px 12px 5px 5px; border-radius: 999px; border: 1px solid var(--border); background: var(--surface2); font-size: 0.84rem; }
+    .tkd-chip i { font-style: normal; width: 24px; height: 24px; border-radius: 50%; display: inline-flex; align-items: center; justify-content: center; font-size: 0.68rem; font-weight: 700; background: color-mix(in srgb, var(--accent) 20%, transparent); color: var(--accent); }
+    .tkd-chip small { color: var(--muted); font-size: 0.72rem; }
+    .tkd-chip.kosong { padding-left: 12px; color: var(--muted); border-style: dashed; background: transparent; }
+    .tkd-assign { border: 1px solid var(--border); border-radius: 12px; }
+    .tkd-assign summary { cursor: pointer; padding: 11px 14px; font-weight: 600; font-size: 0.88rem; list-style: none; display: flex; justify-content: space-between; align-items: center; min-height: 44px; box-sizing: border-box; }
+    .tkd-assign summary::-webkit-details-marker { display: none; }
+    .tkd-assign summary::after { content: ''; width: 8px; height: 8px; border-right: 2px solid var(--muted); border-bottom: 2px solid var(--muted); transform: rotate(45deg); transition: transform .2s; margin-right: 4px; }
+    .tkd-assign[open] summary::after { transform: rotate(-135deg); }
+    .tkd-assign-body { display: flex; gap: 8px; flex-wrap: wrap; padding: 0 14px 14px; }
+    .tkd-sub { font-weight: 700; font-size: 0.95rem; margin: 0 0 10px; }
+    .tkd-fotos { display: flex; gap: 10px; overflow-x: auto; padding-bottom: 4px; }
+    .tkd-foto { flex: 0 0 112px; }
+    .tkd-foto img { display: block; width: 112px; height: 112px; object-fit: cover; border-radius: 14px; background: var(--surface2); border: 1px solid var(--border); cursor: zoom-in; font-size: 0; color: transparent; }
+    .tkd-foto span { display: block; margin-top: 6px; font-size: 0.75rem; color: var(--muted); text-align: center; }
+    .tkd-aksi { padding: 16px; border-radius: 16px; background: var(--surface2); border: 1px solid var(--border); border-top: 3px solid var(--accent); }
+    .tkd-aksi-t { font-weight: 700; font-size: 1rem; margin-bottom: 12px; }
+    .tkd-aksi .btn-primary { width: 100%; justify-content: center; min-height: 46px; }
+    .tkd-solo .btn-primary { width: 100%; justify-content: center; min-height: 48px; }
+    .tkd-info { font-size: 0.85rem; color: var(--muted); padding: 12px 14px; border-radius: 12px; border: 1px dashed var(--border); }
+    .tkd-log { margin: 0; padding: 0; list-style: none; }
+    .tkd-log li { position: relative; padding: 0 0 16px 22px; }
+    .tkd-log li::before { content: ''; position: absolute; left: 0; top: 5px; width: 10px; height: 10px; border-radius: 50%; background: var(--surface); border: 2px solid var(--accent); box-sizing: border-box; }
+    .tkd-log li::after { content: ''; position: absolute; left: 4px; top: 18px; bottom: 0; width: 2px; background: var(--border); }
+    .tkd-log li:last-child { padding-bottom: 0; }
+    .tkd-log li:last-child::after { display: none; }
+    .tkd-log b { font-size: 0.88rem; }
+    .tkd-log .tkd-by { font-size: 0.78rem; color: var(--muted); margin-top: 1px; }
+    .tkd-log .tkd-note { font-size: 0.84rem; margin-top: 4px; line-height: 1.45; overflow-wrap: anywhere; white-space: pre-line; }
 
     /* FAB button for add */
     .fab {
@@ -1159,9 +1266,10 @@ tr:hover td,body.light tr:hover td{background:var(--surface2)}
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/></svg>
       ODP
     </button>
-    <button class="bottom-nav-item" id="bnav-peta" onclick="navigate('peta')">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 6v16l7-4 8 4 7-4V2l-7 4-8-4-7 4z"/><line x1="8" y1="2" x2="8" y2="18"/><line x1="16" y1="6" x2="16" y2="22"/></svg>
-      Peta
+    <button class="bottom-nav-item" id="bnav-tiket" onclick="navigate('tiket')">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 9a3 3 0 0 1 0 6v2a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-2a3 3 0 0 1 0-6V7a2 2 0 0 0-2-2H4a2 2 0 0 0-2 2z"/><line x1="13" y1="5" x2="13" y2="19" stroke-dasharray="2 2"/></svg>
+      Tiket
+      <span class="tk-badge" id="tk-badge-bnav"></span>
     </button>
     <button class="bottom-nav-item" id="bnav-pelanggan" onclick="navigate('pelanggan')">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
@@ -1193,7 +1301,7 @@ tr:hover td,body.light tr:hover td{background:var(--surface2)}
       <span class="icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg></span> Pelanggan
     </div>
     <div class="nav-item" onclick="navigate('tiket')">
-      <span class="icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 9a3 3 0 0 1 0 6v2a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-2a3 3 0 0 1 0-6V7a2 2 0 0 0-2-2H4a2 2 0 0 0-2 2z"/><line x1="13" y1="5" x2="13" y2="19" stroke-dasharray="2 2"/></svg></span> Tiket
+      <span class="icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 9a3 3 0 0 1 0 6v2a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-2a3 3 0 0 1 0-6V7a2 2 0 0 0-2-2H4a2 2 0 0 0-2 2z"/><line x1="13" y1="5" x2="13" y2="19" stroke-dasharray="2 2"/></svg></span> Tiket <span class="tk-badge" id="tk-badge-side"></span>
     </div>
     <div class="nav-label" id="nav-label-admin" style="display:none">Admin</div>
     <div class="nav-item" onclick="navigate('peta')">
@@ -1261,6 +1369,9 @@ tr:hover td,body.light tr:hover td{background:var(--surface2)}
         <div class="stat-sub"><span id="stat-terpakai">0</span> / <span id="stat-kapasitas">0</span> port</div>
       </div>
     </div>
+
+    <div id="dash-tiket-wrap" style="display:none;margin-bottom:16px"></div>
+    <div id="dash-extra" class="dash-grid" style="display:none"></div>
 
     <div class="card">
       <div class="card-header">
@@ -1403,13 +1514,12 @@ tr:hover td,body.light tr:hover td{background:var(--surface2)}
             <th>Nama</th>
             <th>No. HP</th>
             <th>ODP</th>
-            <th>Port</th>
             <th>Status</th>
             <th style="text-align:center">Aksi</th>
           </tr>
         </thead>
         <tbody id="pelanggan-table">
-          <tr><td colspan="7"><div class="empty-state"><div class="icon"><svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1" stroke-linecap="round" stroke-linejoin="round" opacity="0.3"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg></div><p>Belum ada data pelanggan</p></div></td></tr>
+          <tr><td colspan="6"><div class="empty-state"><div class="icon"><svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1" stroke-linecap="round" stroke-linejoin="round" opacity="0.3"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg></div><p>Belum ada data pelanggan</p></div></td></tr>
         </tbody>
       </table>
       <div class="mobile-list" id="pelanggan-mobile-list"><div class="empty-state" style="padding:40px"><p>Belum ada data pelanggan</p></div></div>
@@ -1444,7 +1554,7 @@ tr:hover td,body.light tr:hover td{background:var(--surface2)}
         </div>
       </div>
       <table>
-        <thead><tr><th>Kode</th><th>Pelanggan</th><th>Kategori</th><th>Prioritas</th><th>Status</th><th>Teknisi</th><th>Dibuat</th></tr></thead>
+        <thead><tr><th>Kode</th><th>Pelanggan</th><th>Kategori</th><th>Prioritas</th><th>Status</th><th>Teknisi</th><th>Dibuat</th><th id="tiket-th-aksi" style="display:none"></th></tr></thead>
         <tbody id="tiket-table"></tbody>
       </table>
       <div class="mobile-list" id="tiket-mobile-list"></div>
@@ -1842,15 +1952,18 @@ tr:hover td,body.light tr:hover td{background:var(--surface2)}
           </div>
         </div>
       </div>
-      <div class="form-row">
-        <div class="form-group">
-          <label>Port ODP</label>
-          <input class="form-control" type="text" id="pel-port" placeholder="Port 1" />
+      <div class="form-group">
+        <label>No. Telepon</label>
+        <input class="form-control" type="text" id="pel-telp" placeholder="08123456789" />
+      </div>
+      <div class="form-group">
+        <label>Foto Rumah</label>
+        <input type="file" id="pel-foto-input" accept="image/*" style="display:none" onchange="pilihFotoRumah(this)" />
+        <div id="pel-foto-box" style="display:none;position:relative;border:1px solid var(--border);border-radius:10px;overflow:hidden;background:var(--surface2)">
+          <img id="pel-foto-preview" alt="Foto rumah" style="display:block;width:100%;max-height:220px;object-fit:cover" />
+          <button type="button" class="btn btn-danger btn-sm" onclick="hapusFotoRumahForm()" style="position:absolute;top:8px;right:8px">Hapus foto</button>
         </div>
-        <div class="form-group">
-          <label>No. Telepon</label>
-          <input class="form-control" type="text" id="pel-telp" placeholder="08123456789" />
-        </div>
+        <button type="button" class="btn btn-ghost" id="pel-foto-btn" onclick="document.getElementById('pel-foto-input').click()" style="width:100%;justify-content:center">Ambil / Pilih Foto Rumah</button>
       </div>
       <div class="form-group">
         <label>Link Maps <span style="cursor:help;color:var(--muted);font-weight:400;border:1px solid var(--border);border-radius:50%;padding:0 6px;font-size:0.72rem" title="Tempel link Google Maps di sini (bisa link pendek seperti maps.app.goo.gl/xxxx atau link lengkap maps.google.com/...), lalu klik &quot;Ambil Koordinat&quot;. Koordinat Lintang & Bujur di bawah akan terisi otomatis.">?</span></label>
@@ -1947,6 +2060,7 @@ tr:hover td,body.light tr:hover td{background:var(--surface2)}
   function clearLastPage() { localStorage.removeItem('merdeka_last_page'); }
 
   // ===== Simpan & pulihkan nilai search/filter supaya tidak hilang saat refresh =====
+  let tiketBadgeTimer = null; // penyegar lencana jumlah tiket
   const FILTER_KEY = 'merdeka_filters';
   const FILTER_IDS = ['search-odc', 'filter-odp-odc', 'search-odp', 'filter-pel-odp', 'search-pel', 'filter-tiket-status', 'search-tiket', 'search-users'];
   function readSavedFilters() {
@@ -2059,6 +2173,7 @@ tr:hover td,body.light tr:hover td{background:var(--surface2)}
     currentPage = 'dashboard';
 
     // Kosongkan cache data biar user berikutnya tidak sempat melihat data sesi lama
+    clearInterval(tiketBadgeTimer); setTiketBadge(0);
     odcData = []; odpData = []; allOdpData = []; allOdcData = []; pelangganData = []; usersData = [];
     odcPagination = { page: 1, limit: 50, total: 0, totalPages: 1 };
     odpPagination = { page: 1, limit: 50, total: 0, totalPages: 1 };
@@ -2083,6 +2198,9 @@ tr:hover td,body.light tr:hover td{background:var(--surface2)}
     restoreFilters();
     navigate(getLastPage());
     handlePendingScan();
+    refreshTiketBadge();
+    clearInterval(tiketBadgeTimer);
+    tiketBadgeTimer = setInterval(() => { if (!document.hidden) refreshTiketBadge(); }, 60000); // segarkan tiap 1 menit
   }
 
   // Tangani link hasil scan QR via kamera bawaan HP (format: .../?odp=KODE_ODP)
@@ -2379,11 +2497,11 @@ tr:hover td,body.light tr:hover td{background:var(--surface2)}
 
   // Saklar fitur yang butuh backend baru. Ubah ke true HANYA setelah backend di server ikut diupdate.
   const FITUR_BACKEND_SIAP = {
-    // true = menu Tiket bisa dipakai. false = klik menu Tiket menampilkan "Segera hadir".
-    tiketMenu: ['localhost', '127.0.0.1'].includes(location.hostname),
-    // true = tiket "Diambil" langsung di-close (tanpa On Progress).
-    // Sekarang otomatis aktif hanya di komputer lokal (localhost). Untuk produksi ganti jadi: true
-    tiketLangsungClose: ['localhost', '127.0.0.1'].includes(location.hostname)
+    // true = menu Tiket bisa dipakai (backend /api/tiket sudah terpasang di server).
+    tiketMenu: true,
+    // false = alur Diambil -> On Progress (wajib foto) -> Close, sesuai backend tiket.js.
+    // Jangan diubah ke true: backend hanya mengizinkan close dari status On Progress.
+    tiketLangsungClose: false
   };
 
   // Navigation
@@ -2431,10 +2549,36 @@ tr:hover td,body.light tr:hover td{background:var(--surface2)}
   const TIKET_STATUS = { open: ['Open', 'var(--yellow)'], taken: ['Diambil', 'var(--accent)'], progress: ['On Progress', '#a78bfa'], closed: ['Closed', 'var(--green)'] };
   const TIKET_PRIO = { rendah: 'var(--muted)', sedang: 'var(--yellow)', tinggi: 'var(--red)' };
   let tiketData = [];
+  // Tim teknisi: sampai 2 teknisi (utama + rekan) bisa ditugaskan ke 1 tiket.
+  const tkIds = t => [t.ditugaskan_ke, t.ditugaskan_ke2].filter(Boolean);
+  const tkNamaTugas = t => [t.ditugaskan_nama, t.ditugaskan_nama2].filter(Boolean).join(' & ');
   const tkFmt = d => d ? new Date(d).toLocaleString('id-ID', { dateStyle: 'medium', timeStyle: 'short' }) : '-';
   const tkBadge = s => { const [l, c] = TIKET_STATUS[s] || [s, 'var(--muted)']; return `<span class="badge" style="color:${c};border:1px solid ${c};background:transparent">${l}</span>`; };
   const tkPrio = p => `<span style="color:${TIKET_PRIO[p] || 'var(--muted)'};font-weight:600;text-transform:capitalize">${escapeHtml(p)}</span>`;
 
+  // Lencana jumlah tiket yang belum dikerjakan (hanya status Open, belum diambil siapa pun).
+  // Teknisi hanya dihitung dari tiket yang boleh ia lihat.
+  function setTiketBadge(n) {
+    ['tk-badge-bnav', 'tk-badge-side'].forEach(id => {
+      const el = document.getElementById(id);
+      if (!el) return;
+      el.textContent = n > 99 ? '99+' : String(n);
+      el.classList.toggle('show', n > 0);
+    });
+  }
+  async function refreshTiketBadge() {
+    if (!currentUser || !getToken() || !FITUR_BACKEND_SIAP.tiketMenu) { setTiketBadge(0); return; }
+    try {
+      const res = await apiFetch(`${API}/tiket`);
+      if (!res || !res.success) return;
+      let list = res.data || [];
+      if (currentUser.role === 'teknisi') {
+        const me = currentUser.id;
+        list = list.filter(t => !t.ditugaskan_ke || tkIds(t).includes(me) || t.teknisi_id === me);
+      }
+      setTiketBadge(list.filter(t => t.status === 'open').length);
+    } catch (e) { /* diam: lencana tidak boleh mengganggu halaman */ }
+  }
   async function loadTiket() {
     document.getElementById('btn-tg-setting').style.display = canCRUD() ? '' : 'none'; // admin & NOC
     document.getElementById('btn-wa-setting').style.display = isAdmin() ? '' : 'none';
@@ -2452,23 +2596,30 @@ tr:hover td,body.light tr:hover td{background:var(--surface2)}
       // (Penyaringan ini hanya di tampilan; backend juga perlu menyaringnya.)
       if (currentUser?.role === 'teknisi') {
         const me = currentUser.id;
-        tiketData = tiketData.filter(t => !t.ditugaskan_ke || t.ditugaskan_ke === me || t.teknisi_id === me);
+        tiketData = tiketData.filter(t => !t.ditugaskan_ke || tkIds(t).includes(me) || t.teknisi_id === me);
       }
       renderTiket();
+      refreshTiketBadge();
     } catch (e) { toast(e.message, 'error'); }
   }
 
   // Teknisi yang mengambil tiket, atau (jika belum diambil) teknisi yang ditugaskan.
   function tkTeknisiCell(t) {
-    if (t.teknisi_nama) return escapeHtml(t.teknisi_nama);
+    if (t.teknisi_nama) return escapeHtml(t.teknisi_nama) + (t.rekan_nama ? ' <span style="color:var(--muted)">& ' + escapeHtml(t.rekan_nama) + '</span>' : '');
     if (t.ditugaskan_ke) {
-      const untukSaya = t.ditugaskan_ke === currentUser?.id;
-      return `<span style="color:${untukSaya ? 'var(--green)' : 'var(--muted)'}">${untukSaya ? 'Untuk kamu' : '→ ' + escapeHtml(t.ditugaskan_nama || 'Teknisi')}</span>`;
+      const untukSaya = tkIds(t).includes(currentUser?.id);
+      const lain = tkIds(t).length > 1 ? (t.ditugaskan_ke === currentUser?.id ? t.ditugaskan_nama2 : t.ditugaskan_nama) : '';
+      return `<span style="color:${untukSaya ? 'var(--green)' : 'var(--muted)'}">${untukSaya ? 'Untuk kamu' + (lain ? ' & ' + escapeHtml(lain || 'rekan') : '') : '→ ' + escapeHtml(tkNamaTugas(t) || 'Teknisi')}</span>`;
     }
     return '-';
   }
 
+  const TK_ICON_HAPUS = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/></svg>';
+
   function renderTiket() {
+    const adm = isAdmin();
+    const thAksi = document.getElementById('tiket-th-aksi');
+    if (thAksi) thAksi.style.display = adm ? '' : 'none';
     const empty = '<div class="empty-state" style="padding:40px"><p>Belum ada tiket</p></div>';
     document.getElementById('tiket-table').innerHTML = tiketData.length ? tiketData.map(t => `
       <tr style="cursor:pointer" onclick="openTiketDetail('${t.id}')">
@@ -2476,13 +2627,15 @@ tr:hover td,body.light tr:hover td{background:var(--surface2)}
         <td>${escapeHtml(t.pelanggan_nama)}<div style="font-size:0.75rem;color:var(--muted)">${escapeHtml(t.odp_nama || '')}</div></td>
         <td>${escapeHtml(t.kategori)}</td><td>${tkPrio(t.prioritas)}</td><td>${tkBadge(t.status)}</td>
         <td>${tkTeknisiCell(t)}</td><td style="font-size:0.8rem;color:var(--muted)">${tkFmt(t.created_at)}</td>
-      </tr>`).join('') : `<tr><td colspan="7" style="text-align:center;padding:32px;color:var(--muted)">Belum ada tiket</td></tr>`;
+        ${adm ? `<td style="text-align:right"><button class="btn btn-danger btn-sm" title="Hapus tiket" onclick="event.stopPropagation();hapusTiket('${t.id}','${escapeHtml(t.kode)}')">${TK_ICON_HAPUS}</button></td>` : ''}
+      </tr>`).join('') : `<tr><td colspan="${adm ? 8 : 7}" style="text-align:center;padding:32px;color:var(--muted)">Belum ada tiket</td></tr>`;
     document.getElementById('tiket-mobile-list').innerHTML = tiketData.length ? tiketData.map(t => `
       <div class="m-card" onclick="openTiketDetail('${t.id}')">
         <div style="display:flex;justify-content:space-between;gap:8px"><strong>${escapeHtml(t.kode)}</strong>${tkBadge(t.status)}</div>
         <div style="margin-top:6px">${escapeHtml(t.pelanggan_nama)}</div>
         <div style="font-size:0.8rem;color:var(--muted);margin-top:4px">${escapeHtml(t.kategori)} · ${tkPrio(t.prioritas)} · ${tkFmt(t.created_at)}</div>
         ${t.teknisi_nama || t.ditugaskan_nama ? `<div style="font-size:0.8rem;margin-top:4px">${tkTeknisiCell(t)}</div>` : ''}
+        ${adm ? `<div style="margin-top:8px;text-align:right"><button class="btn btn-danger btn-sm" onclick="event.stopPropagation();hapusTiket('${t.id}','${escapeHtml(t.kode)}')">${TK_ICON_HAPUS} Hapus</button></div>` : ''}
       </div>`).join('') : empty;
   }
 
@@ -2570,12 +2723,46 @@ tr:hover td,body.light tr:hover td{background:var(--surface2)}
     toast(res.success ? 'Pesan tes terkirim, cek WhatsApp' : res.message, res.success ? 'success' : 'error');
   }
 
+  // Ganti tampilan form: gangguan (pilih pelanggan yang sudah ada) / pemasangan baru (isi data calon pelanggan).
+  function gantiJenisTiket() {
+    const pasang = document.getElementById('tiket-jenis').value === 'pemasangan';
+    document.getElementById('tiket-blok-pasang').style.display = pasang ? '' : 'none';
+    document.getElementById('tiket-blok-gangguan').style.display = pasang ? 'none' : '';
+    document.getElementById('tiket-grp-kategori').style.display = pasang ? 'none' : '';
+    document.getElementById('tiket-lbl-deskripsi').textContent = pasang ? 'Catatan' : 'Deskripsi';
+    document.getElementById('tiket-deskripsi').placeholder = pasang ? 'Catatan pemasangan (paket, patokan lokasi, dll)...' : 'Detail keluhan...';
+  }
+
+  async function ambilKoordinatTiket() {
+    const link = document.getElementById('tiket-p-maps').value.trim();
+    const btn = document.getElementById('tiket-p-maps-btn');
+    if (!link) { toast('Tempel link Google Maps dulu', 'error'); return; }
+    if (!/^https?:\/\//i.test(link)) { toast('Link harus dimulai dengan http:// atau https://', 'error'); return; }
+    btn.disabled = true; btn.textContent = 'Memproses...';
+    try {
+      const res = await apiFetch('/api/resolve-maps-link', { method: 'POST', body: JSON.stringify({ link }) });
+      if (res.success && res.data) {
+        document.getElementById('tiket-p-lat').value = res.data.lat;
+        document.getElementById('tiket-p-lng').value = res.data.lng;
+        const info = document.getElementById('tiket-p-koordinat');
+        info.textContent = '✓ Koordinat: ' + res.data.lat + ', ' + res.data.lng; info.style.display = 'block';
+        toast('Koordinat berhasil diambil dari link');
+      } else toast(res.message || 'Tidak dapat membaca koordinat dari link ini', 'error');
+    } catch (e) { toast('Gagal menghubungi server untuk membaca link', 'error'); }
+    btn.disabled = false; btn.textContent = 'Ambil';
+  }
+
   function openTiketModal() {
     ['tiket-pel-search', 'tiket-deskripsi'].forEach(id => document.getElementById(id).value = '');
     tiketPelPilih = null; tiketPelHasil = [];
     document.getElementById('tiket-pel-list').style.display = 'none';
     document.getElementById('tiket-pel-info').style.display = 'none';
+    ['tiket-p-nama', 'tiket-p-hp', 'tiket-p-alamat', 'tiket-p-maps', 'tiket-p-lat', 'tiket-p-lng'].forEach(id => document.getElementById(id).value = '');
+    document.getElementById('tiket-p-koordinat').style.display = 'none';
+    document.getElementById('tiket-jenis').value = 'gangguan';
+    gantiJenisTiket();
     fillTeknisiSelect('tiket-tugas', '');
+    fillTeknisiSelect('tiket-tugas2', '', 'Tanpa rekan');
     document.getElementById('modal-tiket').classList.add('show');
   }
 
@@ -2644,7 +2831,31 @@ tr:hover td,body.light tr:hover td{background:var(--surface2)}
   }
 
   async function saveTiket() {
+    const pasang = document.getElementById('tiket-jenis').value === 'pemasangan';
     const p = tiketPelPilih;
+    if (pasang) {
+      const nama = document.getElementById('tiket-p-nama').value.trim();
+      const hp = document.getElementById('tiket-p-hp').value.trim();
+      const alamat = document.getElementById('tiket-p-alamat').value.trim();
+      if (!nama) { toast('Nama calon pelanggan wajib diisi', 'error'); return; }
+      if (!hp) { toast('No. HP calon pelanggan wajib diisi', 'error'); return; }
+      if (!alamat) { toast('Alamat pemasangan wajib diisi', 'error'); return; }
+      const body = {
+        jenis: 'pemasangan', pelanggan_nama: nama, pelanggan_hp: hp, alamat,
+        lat: document.getElementById('tiket-p-lat').value || '', lng: document.getElementById('tiket-p-lng').value || '',
+        prioritas: document.getElementById('tiket-prioritas').value,
+        deskripsi: document.getElementById('tiket-deskripsi').value.trim(),
+        ditugaskan_ke: document.getElementById('tiket-tugas').value || null,
+        ditugaskan_ke2: document.getElementById('tiket-tugas2').value || null
+      };
+      if (body.ditugaskan_ke2 && !body.ditugaskan_ke) { toast('Pilih teknisi utama dulu sebelum memilih rekan', 'error'); return; }
+      if (body.ditugaskan_ke2 && body.ditugaskan_ke2 === body.ditugaskan_ke) { toast('Teknisi dan rekan tidak boleh orang yang sama', 'error'); return; }
+      const res = await apiFetch(`${API}/tiket`, { method: 'POST', body: JSON.stringify(body) });
+      if (!res.success) { toast(res.message || 'Gagal membuat tiket pemasangan', 'error'); return; }
+      toast('Tiket pemasangan baru dibuat');
+      closeModal('tiket'); loadTiket();
+      return;
+    }
     if (!p) { toast('Pilih pelanggan dari daftar yang muncul', 'error'); return; }
     const body = {
       pelanggan_id: p.id, pelanggan_nama: p.nama, pelanggan_hp: p.no_telp || '', pelanggan_no: p.no_pelanggan || '',
@@ -2652,72 +2863,236 @@ tr:hover td,body.light tr:hover td{background:var(--surface2)}
       kategori: document.getElementById('tiket-kategori').value,
       prioritas: document.getElementById('tiket-prioritas').value,
       deskripsi: document.getElementById('tiket-deskripsi').value.trim(),
-      ditugaskan_ke: document.getElementById('tiket-tugas').value || null
+      ditugaskan_ke: document.getElementById('tiket-tugas').value || null,
+      ditugaskan_ke2: document.getElementById('tiket-tugas2').value || null
     };
+    if (body.ditugaskan_ke2 && !body.ditugaskan_ke) { toast('Pilih teknisi utama dulu sebelum memilih rekan', 'error'); return; }
+    if (body.ditugaskan_ke2 && body.ditugaskan_ke2 === body.ditugaskan_ke) { toast('Teknisi dan rekan tidak boleh orang yang sama', 'error'); return; }
     const res = await apiFetch(`${API}/tiket`, { method: 'POST', body: JSON.stringify(body) });
     if (!res.success) { toast(res.message || 'Gagal membuat tiket', 'error'); return; }
     toast(body.ditugaskan_ke ? 'Tiket dibuat & ditugaskan ke teknisi' : 'Tiket dibuat & notifikasi Telegram dikirim');
     closeModal('tiket'); loadTiket();
   }
 
+  let tiketAktifKode = '';
   async function openTiketDetail(id) {
     const res = await apiFetch(`${API}/tiket/${id}`);
     if (!res.success) { toast(res.message || 'Gagal memuat tiket', 'error'); return; }
     tiketFotoFile = null;
     const t = res.data;
-    const mine = isAdmin() || t.teknisi_id === currentUser?.id;
+    tiketAktifKode = t.kode;
+    const mine = isAdmin() || t.teknisi_id === currentUser?.id || t.rekan_id === currentUser?.id;
     let aksi = '';
-    const bolehAmbil = !t.ditugaskan_ke || t.ditugaskan_ke === currentUser?.id || currentUser?.role !== 'teknisi';
+    const bolehAmbil = !t.ditugaskan_ke || tkIds(t).includes(currentUser?.id) || currentUser?.role !== 'teknisi';
     if (t.status === 'open' && bolehAmbil) aksi = `<button class="btn btn-primary" onclick="tiketAksi('${t.id}','ambil')">Ambil Tiket</button>`;
-    else if (t.status === 'open') aksi = `<div style="color:var(--muted);font-size:0.85rem">Tiket ini ditugaskan ke ${escapeHtml(t.ditugaskan_nama || 'teknisi lain')}.</div>`;
+    else if (t.status === 'open') aksi = `<div style="color:var(--muted);font-size:0.85rem">Tiket ini ditugaskan ke ${escapeHtml(tkNamaTugas(t) || 'teknisi lain')}.</div>`;
     else if (t.status === 'taken' && !FITUR_BACKEND_SIAP.tiketLangsungClose && mine) aksi = `
-      <div style="font-weight:600;margin-bottom:6px">Foto pekerjaan *</div>
-      <div style="display:flex;gap:8px;flex-wrap:wrap">
-        <button type="button" class="btn btn-secondary" onclick="document.getElementById('tiket-foto-cam').click()">📷 Ambil Foto</button>
-        <button type="button" class="btn btn-secondary" onclick="document.getElementById('tiket-foto-gal').click()">🖼️ Pilih dari Galeri</button>
-      </div>
-      <input type="file" id="tiket-foto-cam" accept="image/*" capture="environment" style="display:none" onchange="previewFotoTiket(this)" />
-      <input type="file" id="tiket-foto-gal" accept="image/*" style="display:none" onchange="previewFotoTiket(this)" />
-      <img id="tiket-foto-preview" alt="" style="display:none;max-width:100%;max-height:220px;margin-top:8px;border-radius:8px" />
+      ${tkFotoPicker('Foto pekerjaan *')}
       <button class="btn btn-primary" id="btn-mulai" style="margin-top:8px" onclick="mulaiKerjakan('${t.id}')">Mulai Kerjakan (On Progress)</button>`;
-    else if ((t.status === 'progress' || (t.status === 'taken' && FITUR_BACKEND_SIAP.tiketLangsungClose)) && mine) aksi = `<textarea class="form-control" id="tiket-catatan" rows="2" placeholder="Catatan penyelesaian *"></textarea>
-      <button class="btn btn-primary" style="margin-top:8px" onclick="tiketAksi('${t.id}','close')">Close Tiket</button>`;
+    else if (t.status === 'progress' && t.jenis === 'pemasangan' && !t.ada_foto_sn && mine) aksi = `
+      <div style="padding:10px 12px;border-radius:10px;background:var(--surface2);font-size:0.82rem;margin-bottom:10px">📶 Langkah berikutnya: <b>aktivasi modem</b>. Foto SN modem dulu, setelah itu tiket baru bisa ditutup.</div>
+      ${tkFotoPicker('Foto SN modem *')}
+      <button class="btn btn-primary" id="btn-aktivasi" style="margin-top:8px" onclick="aktivasiTiket('${t.id}')">Simpan Aktivasi</button>`;
+    else if ((t.status === 'progress' || (t.status === 'taken' && FITUR_BACKEND_SIAP.tiketLangsungClose)) && mine) aksi = `
+      ${t.jenis === 'pemasangan' ? `
+      <div style="font-weight:600;margin-bottom:6px">ODP pemasangan *</div>
+      <input class="form-control" type="text" id="tiket-odp-input" list="tiket-odp-dl" autocomplete="off" placeholder="Ketik untuk mencari ODP (kode / nama)..." />
+      <datalist id="tiket-odp-dl"></datalist>
+      <input class="form-control" type="text" id="tiket-port" autocomplete="off" style="margin-top:8px" placeholder="Port ODP (opsional, mis. 3)" />
+      <div style="font-size:0.75rem;color:var(--muted);margin:4px 0 12px">Setelah tiket ditutup, calon pelanggan otomatis terdaftar di menu Pelanggan pada ODP ini.</div>` : ''}
+      ${tkFotoPicker('Foto penyelesaian *')}
+      <textarea class="form-control" id="tiket-catatan" rows="2" style="margin-top:8px" placeholder="Catatan penyelesaian *"></textarea>
+      <button class="btn btn-primary" id="btn-close" style="margin-top:8px" onclick="tutupTiket('${t.id}')">Close Tiket</button>`;
     document.getElementById('tiket-detail-title').textContent = t.kode;
+    const pasang = t.jenis === 'pemasangan';
+    // Bentuk area aksi: 'info' = hanya keterangan, 'solo' = satu tombol, 'kartu' = form bertahap (judul opsional)
+    const aksiMode = !aksi ? '' : t.status === 'open' ? (bolehAmbil ? 'solo' : 'info') : 'kartu';
+    const aksiJudul = t.status === 'taken' ? '' : (t.status === 'progress' && pasang && !t.ada_foto_sn) ? 'Aktivasi modem' : 'Tutup tiket';
+    const foto = (ada, idImg, label) => ada ? `<div class="tkd-foto"><img id="${idImg}" alt="${label}" onclick="if(this.src)window.open(this.src)" /><span>${label}</span></div>` : '';
+    const adaFoto = t.ada_foto || t.ada_foto_sn || t.ada_foto_selesai;
+    const tim = t.teknisi_nama
+      ? tkChip(t.teknisi_nama, 'teknisi') + (t.rekan_nama ? tkChip(t.rekan_nama, 'rekan') : '')
+      : (tkNamaTugas(t) ? [t.ditugaskan_nama, t.ditugaskan_nama2].filter(Boolean).map(n => tkChip(n, 'ditugaskan')).join('') : '<span class="tkd-chip kosong">Terbuka untuk semua teknisi</span>');
     document.getElementById('tiket-detail-body').innerHTML = `
-      <div style="display:flex;gap:8px;align-items:center;margin-bottom:12px">${tkBadge(t.status)} ${tkPrio(t.prioritas)}</div>
-      <div style="line-height:1.7;font-size:0.9rem">
-        <b>Pelanggan:</b> ${escapeHtml(t.pelanggan_nama)} ${t.pelanggan_hp ? '(' + escapeHtml(t.pelanggan_hp) + ')' : ''}<br>
-        <b>No. Pelanggan:</b> ${escapeHtml(t.pelanggan_no || '-')}<br>
-        <b>Alamat:</b> ${escapeHtml(t.alamat || '-')}<br>
-        <b>ODP:</b> ${escapeHtml(t.odp_nama || '-')}<br>
-        <b>Kategori:</b> ${escapeHtml(t.kategori)}<br>
-        <b>Deskripsi:</b> ${escapeHtml(t.deskripsi || '-')}<br>
-        <b>Ditugaskan ke:</b> ${escapeHtml(t.ditugaskan_nama || (t.ditugaskan_ke ? 'Teknisi' : 'Belum ditentukan (terbuka)'))}<br>
-        <b>Teknisi:</b> ${escapeHtml(t.teknisi_nama || '-')}
+      <div class="tkd-meta">${tkBadge(t.status)} ${tkPrio(t.prioritas)}${pasang ? '<span class="tkd-tag">Pemasangan baru</span>' : ''}<span class="tkd-when">${tkFmt(t.created_at)}</span></div>
+      ${tkStepper(t)}
+      <div class="tkd-cust">
+        <div class="tkd-avatar" aria-hidden="true">${escapeHtml(tkInisial(t.pelanggan_nama))}</div>
+        <div class="tkd-cust-main">
+          <div class="tkd-cust-nama">${escapeHtml(t.pelanggan_nama)}</div>
+          <div class="tkd-cust-sub">${[pasang ? 'Calon pelanggan' : (t.pelanggan_no ? 'No. ' + t.pelanggan_no : ''), t.pelanggan_hp].filter(Boolean).map(escapeHtml).join(' · ')}</div>
+        </div>
+        ${tkKontakBtns(t, true)}
       </div>
+      <dl class="tkd-kv">
+        <dt>Alamat</dt><dd>${escapeHtml(t.alamat || '-')}</dd>
+        ${t.odp_nama ? `<dt>ODP</dt><dd>${escapeHtml(t.odp_nama)}${t.port ? ' · port ' + escapeHtml(t.port) : ''}</dd>` : ''}
+        ${pasang ? '' : `<dt>Kategori</dt><dd>${escapeHtml(t.kategori)}</dd>`}
+        <dt>${pasang ? 'Catatan' : 'Keluhan'}</dt><dd>${escapeHtml(t.deskripsi || '-')}</dd>
+      </dl>
+      <div><div class="tkd-sub">Teknisi</div><div class="tkd-team">${tim}</div></div>
       ${canCRUD() && (t.status === 'open' || t.status === 'taken') ? `
-      <div style="margin-top:14px;padding:12px;border:1px solid var(--border);border-radius:10px">
-        <div style="font-weight:600;margin-bottom:6px">${t.ditugaskan_ke ? 'Ubah penugasan' : 'Tugaskan ke teknisi'}</div>
-        <div style="display:flex;gap:8px;flex-wrap:wrap">
-          <select class="form-control" id="tiket-assign-sel" style="flex:1;min-width:160px"></select>
+      <details class="tkd-assign">
+        <summary>${t.ditugaskan_ke ? 'Ubah penugasan' : 'Tugaskan ke teknisi'}</summary>
+        <div class="tkd-assign-body">
+          <select class="form-control" id="tiket-assign-sel" style="flex:1;min-width:150px"></select>
+          <select class="form-control" id="tiket-assign-sel2" style="flex:1;min-width:150px"></select>
           <button class="btn btn-primary" id="btn-assign" onclick="tugaskanTiket('${t.id}')">Simpan</button>
         </div>
-      </div>` : ''}
-      ${t.ada_foto ? `<div style="margin-top:14px"><b>Foto pekerjaan</b><br><img id="tiket-foto-view" alt="Foto pekerjaan" style="max-width:100%;max-height:260px;margin-top:6px;border-radius:8px;cursor:zoom-in;background:var(--surface2)" onclick="if(this.src)window.open(this.src)" /></div>` : ''}
-      <div style="margin:16px 0 6px;font-weight:600">Riwayat</div>
-      ${(t.logs || []).map(l => `<div style="font-size:0.82rem;padding:6px 0;border-top:1px solid var(--border)"><b>${escapeHtml(l.aksi)}</b> oleh ${escapeHtml(l.oleh_nama)}<span style="color:var(--muted)"> · ${tkFmt(l.created_at)}</span>${l.catatan ? '<div>' + escapeHtml(l.catatan) + '</div>' : ''}</div>`).join('')}
-      ${aksi ? `<div style="margin-top:16px">${aksi}</div>` : ''}`;
+      </details>` : ''}
+      ${adaFoto ? `<div><div class="tkd-sub">Foto</div><div class="tkd-fotos">
+        ${foto(t.ada_foto, 'tiket-foto-view', 'Pekerjaan')}${foto(t.ada_foto_sn, 'tiket-foto-sn-view', 'SN modem')}${foto(t.ada_foto_selesai, 'tiket-foto-selesai-view', 'Penyelesaian')}
+      </div></div>` : ''}
+      ${aksiMode === 'kartu' ? `<section class="tkd-aksi">${aksiJudul ? `<div class="tkd-aksi-t">${aksiJudul}</div>` : ''}${aksi}</section>`
+        : aksiMode === 'solo' ? `<div class="tkd-solo">${aksi}</div>`
+        : aksiMode === 'info' ? `<div class="tkd-info">${aksi}</div>` : ''}
+      <div><div class="tkd-sub">Riwayat</div>
+        <ul class="tkd-log">${(t.logs || []).map(l => `<li><b>${escapeHtml(l.aksi)}</b><div class="tkd-by">${escapeHtml(l.oleh_nama)} · ${tkFmt(l.created_at)}</div>${l.catatan ? `<div class="tkd-note">${escapeHtml(l.catatan)}</div>` : ''}</li>`).join('')}</ul>
+      </div>`;
     document.getElementById('modal-tiket-detail').classList.add('show');
-    if (document.getElementById('tiket-assign-sel')) fillTeknisiSelect('tiket-assign-sel', t.ditugaskan_ke || '');
+    if (document.getElementById('tiket-odp-dl')) isiDaftarOdpTiket();
+    if (document.getElementById('tiket-assign-sel')) { fillTeknisiSelect('tiket-assign-sel', t.ditugaskan_ke || ''); fillTeknisiSelect('tiket-assign-sel2', t.ditugaskan_ke2 || '', 'Tanpa rekan'); }
     if (t.ada_foto) { // <img> tidak bisa kirim header login, jadi ambil sebagai blob
       fetch(`${API}/tiket/${t.id}/foto`, { headers: { Authorization: 'Bearer ' + getToken() } })
         .then(r => r.ok ? r.blob() : null)
         .then(b => { const el = document.getElementById('tiket-foto-view'); if (b && el) el.src = URL.createObjectURL(b); })
         .catch(() => {});
     }
+    if (t.ada_foto_sn) {
+      fetch(`${API}/tiket/${t.id}/foto?jenis=sn`, { headers: { Authorization: 'Bearer ' + getToken() } })
+        .then(r => r.ok ? r.blob() : null)
+        .then(b => { const el = document.getElementById('tiket-foto-sn-view'); if (b && el) el.src = URL.createObjectURL(b); })
+        .catch(() => {});
+    }
+    if (t.ada_foto_selesai) {
+      fetch(`${API}/tiket/${t.id}/foto?jenis=selesai`, { headers: { Authorization: 'Bearer ' + getToken() } })
+        .then(r => r.ok ? r.blob() : null)
+        .then(b => { const el = document.getElementById('tiket-foto-selesai-view'); if (b && el) el.src = URL.createObjectURL(b); })
+        .catch(() => {});
+    }
+  }
+
+  const TKD_CEK = '<svg viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M2.5 6.4l2.3 2.3 4.7-5"/></svg>';
+  const tkInisial = n => (String(n || '?').trim().split(/\s+/).slice(0, 2).map(w => w[0]).join('') || '?').toUpperCase();
+  const tkChip = (nama, peran) => `<span class="tkd-chip"><i>${escapeHtml(tkInisial(nama))}</i>${escapeHtml(nama)}${peran ? ` <small>${peran}</small>` : ''}</span>`;
+
+  // Garis tahapan: Open > Diambil > Progress > (Aktivasi, khusus pemasangan) > Selesai
+  function tkStepper(t) {
+    const pasang = t.jenis === 'pemasangan';
+    const steps = pasang
+      ? [['open', 'Open'], ['taken', 'Diambil'], ['progress', 'Progress'], ['aktivasi', 'Aktivasi'], ['closed', 'Selesai']]
+      : [['open', 'Open'], ['taken', 'Diambil'], ['progress', 'Progress'], ['closed', 'Selesai']];
+    let cur = steps.findIndex(x => x[0] === t.status);
+    if (t.status === 'progress' && pasang && t.ada_foto_sn) cur = 3;
+    const tutup = t.status === 'closed';
+    return `<ol class="tkd-steps" aria-label="Tahapan tiket">${steps.map((x, i) => {
+      const st = tutup || i < cur ? 'done' : i === cur ? 'cur' : 'todo';
+      return `<li class="tkd-step ${st}"${st === 'cur' ? ' aria-current="step"' : ''}><span class="tkd-node">${st === 'done' ? TKD_CEK : ''}</span><span class="tkd-step-l">${x[1]}</span></li>`;
+    }).join('')}</ol>`;
+  }
+
+  // Tombol ikon WhatsApp pelanggan & lokasi (Google Maps). Muncul setelah tiket diambil (status Diambil / On Progress).
+  function tkWaNumber(hp) {
+    let d = String(hp || '').replace(/\D/g, '');
+    if (d.startsWith('0')) d = '62' + d.slice(1); else if (d.startsWith('8')) d = '62' + d;
+    return /^62\d{8,13}$/.test(d) ? d : null;
+  }
+  function tkKontakBtns(t, inline = false) {
+    if (!['taken', 'progress'].includes(t.status)) return '';
+    const wa = tkWaNumber(t.pelanggan_hp);
+    const lat = parseFloat(t.lat), lng = parseFloat(t.lng);
+    const peta = Number.isFinite(lat) && Number.isFinite(lng)
+      ? `https://www.google.com/maps?q=${lat},${lng}`
+      : (t.alamat ? `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(t.alamat)}` : null);
+    if (!wa && !peta) return '';
+    const st = 'display:inline-flex;align-items:center;justify-content:center;width:42px;height:42px;border-radius:50%;color:#fff;text-decoration:none;';
+    return `<div ${inline ? 'class="tkd-kontak"' : 'style="display:flex;gap:10px;margin-top:12px"'}>
+      ${wa ? `<a href="https://wa.me/${wa}" target="_blank" rel="noopener" title="Chat WhatsApp pelanggan" aria-label="Chat WhatsApp pelanggan" style="${st}background:#25D366"><svg width="22" height="22" viewBox="0 0 24 24" fill="currentColor"><path d="M17.47 14.38c-.3-.15-1.76-.87-2.03-.97-.27-.1-.47-.15-.67.15-.2.3-.77.97-.94 1.17-.17.2-.35.22-.65.07-.3-.15-1.26-.46-2.4-1.48-.89-.79-1.49-1.77-1.66-2.07-.17-.3-.02-.46.13-.61.14-.13.3-.35.45-.52.15-.18.2-.3.3-.5.1-.2.05-.37-.02-.52-.08-.15-.67-1.62-.92-2.22-.24-.58-.49-.5-.67-.51h-.57c-.2 0-.52.07-.8.37-.27.3-1.04 1.02-1.04 2.48 0 1.46 1.07 2.88 1.22 3.08.15.2 2.1 3.2 5.08 4.49.71.3 1.26.49 1.7.63.71.23 1.36.2 1.87.12.57-.08 1.76-.72 2.01-1.41.25-.7.25-1.29.17-1.41-.07-.13-.27-.2-.57-.35zM12.04 21.5h-.01a9.45 9.45 0 0 1-4.82-1.32l-.35-.2-3.58.94.96-3.49-.22-.36a9.44 9.44 0 0 1-1.45-5.03c0-5.22 4.25-9.47 9.48-9.47 2.53 0 4.9.99 6.69 2.78a9.4 9.4 0 0 1 2.77 6.7c0 5.22-4.25 9.45-9.47 9.45zM20.1 3.9A11.4 11.4 0 0 0 12.04.5C5.73.5.6 5.63.6 11.94c0 2.02.53 3.99 1.53 5.73L.5 23.5l5.97-1.57a11.43 11.43 0 0 0 5.57 1.42h.01c6.31 0 11.44-5.13 11.44-11.44 0-3.05-1.19-5.92-3.39-8.07z"/></svg></a>` : ''}
+      ${peta ? `<a href="${peta}" target="_blank" rel="noopener" title="Buka lokasi di Google Maps" aria-label="Buka lokasi di Google Maps" style="${st}background:var(--accent)"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg></a>` : ''}
+    </div>`;
+  }
+
+  // Hapus tiket permanen (khusus admin): tiket, riwayat, dan foto pekerjaannya.
+  async function hapusTiket(id, kode) {
+    const ok = await confirmModal({ title: 'Hapus tiket?', message: `Tiket ${kode} beserta riwayat dan fotonya akan dihapus permanen dan tidak bisa dikembalikan.`, confirmText: 'Hapus', danger: true });
+    if (!ok) return;
+    try {
+      const res = await apiFetch(`${API}/tiket/${id}`, { method: 'DELETE' });
+      if (!res.success) { toast(res.message || 'Gagal menghapus tiket', 'error'); return; }
+      toast('Tiket dihapus');
+      closeModal('tiket-detail'); loadTiket();
+    } catch (e) { toast(e.message, 'error'); }
   }
 
   let tiketFotoFile = null; // foto terpilih (dari kamera atau galeri)
+
+  // Pemilih foto (kamera / galeri + pratinjau), dipakai saat mulai kerjakan dan saat close tiket.
+  function tkFotoPicker(label) {
+    return `<div style="font-weight:600;margin-bottom:6px">${label}</div>
+      <div style="display:flex;gap:8px;flex-wrap:wrap">
+        <button type="button" class="btn btn-secondary" onclick="document.getElementById('tiket-foto-cam').click()">📷 Ambil Foto</button>
+        <button type="button" class="btn btn-secondary" onclick="document.getElementById('tiket-foto-gal').click()">🖼️ Pilih dari Galeri</button>
+      </div>
+      <input type="file" id="tiket-foto-cam" accept="image/*" capture="environment" style="display:none" onchange="previewFotoTiket(this)" />
+      <input type="file" id="tiket-foto-gal" accept="image/*" style="display:none" onchange="previewFotoTiket(this)" />
+      <img id="tiket-foto-preview" alt="" style="display:none;max-width:100%;max-height:220px;margin-top:8px;border-radius:8px" />`;
+  }
+
+  // Close tiket: wajib foto penyelesaian + catatan. Foto dikirim sebagai biner, catatan lewat header.
+  // Aktivasi modem (tiket pemasangan baru): wajib foto SN modem sebelum tiket bisa ditutup.
+  async function aktivasiTiket(id) {
+    if (!tiketFotoFile) { toast('Foto SN modem wajib dilampirkan', 'error'); return; }
+    const btn = document.getElementById('btn-aktivasi');
+    btn.disabled = true; btn.textContent = 'Mengunggah foto...';
+    try {
+      const blob = await kompresFoto(tiketFotoFile);
+      const res = await apiFetch(`${API}/tiket/${id}/aktivasi`, { method: 'POST', headers: { 'Content-Type': 'image/jpeg' }, body: blob });
+      if (!res.success) { toast(res.message || 'Gagal menyimpan aktivasi', 'error'); btn.disabled = false; btn.textContent = 'Simpan Aktivasi'; return; }
+      toast('Aktivasi tersimpan, silakan lanjut menutup tiket');
+      loadTiket(); openTiketDetail(id);
+    } catch (e) {
+      toast(e.message || 'Gagal mengunggah foto', 'error');
+      btn.disabled = false; btn.textContent = 'Simpan Aktivasi';
+    }
+  }
+
+  // Daftar ODP untuk pilihan saat menutup tiket pemasangan (input dengan pencarian)
+  async function isiDaftarOdpTiket() {
+    if (!allOdpData.length) { try { await loadAllODP(); } catch (e) {} }
+    const dl = document.getElementById('tiket-odp-dl');
+    if (!dl) return;
+    dl.innerHTML = allOdpData.map(o => `<option value="${escapeHtml(o.kode + ' — ' + o.nama)}">${escapeHtml('terpakai ' + (o.terpakai ?? 0) + '/' + (o.kapasitas ?? '-'))}</option>`).join('');
+  }
+  function cariOdpTiket(teks) {
+    const v = String(teks || '').trim().toLowerCase();
+    return allOdpData.find(o => (o.kode + ' — ' + o.nama).toLowerCase() === v) || allOdpData.find(o => String(o.kode).toLowerCase() === v) || null;
+  }
+
+  async function tutupTiket(id) {
+    const catatan = document.getElementById('tiket-catatan').value.trim();
+    if (!tiketFotoFile) { toast('Foto penyelesaian wajib dilampirkan', 'error'); return; }
+    if (!catatan) { toast('Catatan penyelesaian wajib diisi', 'error'); return; }
+    const headers = { 'Content-Type': 'image/jpeg', 'X-Catatan': encodeURIComponent(catatan.slice(0, 500)) };
+    if (document.getElementById('tiket-odp-input')) { // tiket pemasangan baru
+      const odp = cariOdpTiket(document.getElementById('tiket-odp-input').value);
+      const port = document.getElementById('tiket-port').value.trim();
+      if (!odp) { toast('Pilih ODP dari daftar yang muncul saat mengetik', 'error'); return; }
+      headers['X-Odp-Id'] = odp.id;
+      if (port) headers['X-Port'] = encodeURIComponent(port);
+    }
+    const btn = document.getElementById('btn-close');
+    btn.disabled = true; btn.textContent = 'Mengunggah foto...';
+    try {
+      const blob = await kompresFoto(tiketFotoFile);
+      const res = await apiFetch(`${API}/tiket/${id}/close`, { method: 'POST', headers, body: blob });
+      if (!res.success) { toast(res.message || 'Gagal menutup tiket', 'error'); btn.disabled = false; btn.textContent = 'Close Tiket'; return; }
+      toast(headers['X-Odp-Id'] ? 'Tiket ditutup, pelanggan baru terdaftar di menu Pelanggan' : 'Tiket ditutup, foto penyelesaian terkirim');
+      closeModal('tiket-detail'); loadTiket();
+    } catch (e) {
+      toast(e.message || 'Gagal mengunggah foto', 'error');
+      btn.disabled = false; btn.textContent = 'Close Tiket';
+    }
+  }
 
   function previewFotoTiket(input) {
     const img = document.getElementById('tiket-foto-preview');
@@ -2728,13 +3103,26 @@ tr:hover td,body.light tr:hover td{background:var(--surface2)}
     input.value = ''; // supaya memilih file yang sama lagi tetap terdeteksi
   }
 
-  // Perkecil foto (sisi terpanjang 1280px, JPEG) supaya upload cepat di sinyal lapangan
-  async function kompresFoto(file, maxSide = 1280, q = 0.8) {
+  // Perkecil foto (sisi terpanjang 1280px, JPEG) + cap waktu supaya upload cepat di sinyal lapangan
+  async function kompresFoto(file, maxSide = 1280, q = 0.8, cap = true) {
     const bmp = await createImageBitmap(file);
     const k = Math.min(1, maxSide / Math.max(bmp.width, bmp.height));
     const c = document.createElement('canvas');
     c.width = Math.round(bmp.width * k); c.height = Math.round(bmp.height * k);
-    c.getContext('2d').drawImage(bmp, 0, 0, c.width, c.height);
+    const ctx = c.getContext('2d');
+    ctx.drawImage(bmp, 0, 0, c.width, c.height);
+    // Cap waktu (WIB) di pojok kiri bawah supaya foto bisa dibuktikan kapan diambil
+    if (cap) try {
+      const teks = new Date().toLocaleString('id-ID', { timeZone: 'Asia/Jakarta', day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: false }).replace(',', '') + ' WIB';
+      const fs = Math.max(14, Math.round(Math.max(c.width, c.height) / 45));
+      const baris = [teks, [tiketAktifKode, currentUser?.nama].filter(Boolean).join(' · ')].filter(Boolean);
+      ctx.font = `600 ${fs}px sans-serif`; ctx.textBaseline = 'middle';
+      const pad = Math.round(fs * 0.5), lh = Math.round(fs * 1.25);
+      const w = Math.min(c.width, Math.max(...baris.map(b => ctx.measureText(b).width)) + pad * 2), h = lh * baris.length + pad;
+      ctx.fillStyle = 'rgba(0,0,0,.55)'; ctx.fillRect(0, c.height - h, w, h);
+      ctx.fillStyle = '#fff';
+      baris.forEach((b, i) => ctx.fillText(b, pad, c.height - h + pad / 2 + lh * (i + 0.5)));
+    } catch (e) { /* cap waktu gagal: foto tetap dikirim tanpa cap */ }
     return new Promise((ok, err) => c.toBlob(b => b ? ok(b) : err(new Error('Gagal memproses foto')), 'image/jpeg', q));
   }
 
@@ -2757,9 +3145,12 @@ tr:hover td,body.light tr:hover td{background:var(--surface2)}
 
   async function tugaskanTiket(id) {
     const teknisiId = document.getElementById('tiket-assign-sel').value;
+    const teknisiId2 = document.getElementById('tiket-assign-sel2').value;
+    if (teknisiId2 && !teknisiId) { toast('Pilih teknisi utama dulu sebelum memilih rekan', 'error'); return; }
+    if (teknisiId2 && teknisiId2 === teknisiId) { toast('Teknisi dan rekan tidak boleh orang yang sama', 'error'); return; }
     const btn = document.getElementById('btn-assign');
     btn.disabled = true;
-    const res = await apiFetch(`${API}/tiket/${id}/assign`, { method: 'POST', body: JSON.stringify({ teknisi_id: teknisiId || null }) });
+    const res = await apiFetch(`${API}/tiket/${id}/assign`, { method: 'POST', body: JSON.stringify({ teknisi_id: teknisiId || null, teknisi_id2: teknisiId2 || null }) });
     btn.disabled = false;
     if (!res.success) { toast(res.message || 'Gagal menugaskan tiket', 'error'); return; }
     toast(teknisiId ? 'Tiket ditugaskan ke teknisi' : 'Penugasan dihapus, tiket terbuka untuk semua teknisi');
@@ -2873,7 +3264,7 @@ tr:hover td,body.light tr:hover td{background:var(--surface2)}
       document.getElementById('modal-pelanggan-title').textContent = data ? 'Edit Pelanggan' : 'Tambah Pelanggan';
       document.getElementById('pel-id').value = data?.id || '';
       document.getElementById('pel-nama').value = data?.nama || '';
-      document.getElementById('pel-port').value = data?.port || '';
+      resetFotoRumahForm(data);
       document.getElementById('pel-telp').value = data?.no_telp || '';
       document.getElementById('pel-maps-link').value = '';
       document.getElementById('pel-lat').value = data?.koordinat_lat || '';
@@ -3131,7 +3522,84 @@ tr:hover td,body.light tr:hover td{background:var(--surface2)}
   }
 
   // ===== DASHBOARD =====
+  // ===== Dashboard tambahan: tiket aktif, ODP hampir penuh, status pelanggan, kelengkapan data, tren =====
+  function dashUmur(iso) {
+    const mnt = Math.max(0, Math.round((Date.now() - new Date(iso).getTime()) / 60000));
+    if (mnt < 60) return { t: mnt + ' menit', lama: false };
+    if (mnt < 1440) return { t: Math.floor(mnt / 60) + ' jam', lama: mnt >= 240 };
+    return { t: Math.floor(mnt / 1440) + ' hari', lama: true };
+  }
+
+  async function loadDashboardTiket() {
+    const wrap = document.getElementById('dash-tiket-wrap');
+    try {
+      const res = await apiFetch(`${API}/tiket`);
+      if (!res || !res.success) { wrap.style.display = 'none'; return; }
+      let list = res.data || [];
+      const teknisi = currentUser?.role === 'teknisi';
+      if (teknisi) list = list.filter(t => !t.ditugaskan_ke || tkIds(t).includes(currentUser.id) || t.teknisi_id === currentUser.id);
+      const aktif = list.filter(t => t.status !== 'closed');
+      const n = st => aktif.filter(t => t.status === st).length;
+      const urut = aktif.slice().sort((a, b) => (a.status === 'open' ? 0 : 1) - (b.status === 'open' ? 0 : 1) || new Date(a.created_at) - new Date(b.created_at)).slice(0, 5);
+      const barisHtml = urut.map(t => {
+        const u = dashUmur(t.created_at);
+        const sub = [t.jenis === 'pemasangan' ? 'Pemasangan baru' : (t.kategori || 'Gangguan'), tkNamaTugas(t) || (t.status === 'open' ? 'Belum diambil' : '')].filter(Boolean).join(' · ');
+        return `<div class="dash-tk-row" onclick="openTiketDetail('${t.id}')">
+          <div class="dash-tk-main"><div class="dash-tk-nama">${escapeHtml(t.pelanggan_nama || '-')}</div><div class="dash-tk-sub">${escapeHtml(t.kode)} · ${escapeHtml(sub)}</div></div>
+          ${tkBadge(t.status)}
+          <div class="dash-tk-umur ${t.status === 'open' && u.lama ? 'lama' : ''}">${u.t}</div>
+        </div>`;
+      }).join('');
+      wrap.innerHTML = `<div class="card">
+        <div class="card-header"><div class="card-title">${teknisi ? 'Tiket Saya' : 'Tiket Aktif'}</div><button class="dash-link" onclick="navigate('tiket')">Lihat semua tiket</button></div>
+        <div class="dash-tk-counts">
+          <div class="dash-tk-count"><b style="color:var(--yellow)">${n('open')}</b><span>Open</span></div>
+          <div class="dash-tk-count"><b style="color:var(--accent)">${n('taken')}</b><span>Diambil</span></div>
+          <div class="dash-tk-count"><b style="color:#a78bfa">${n('progress')}</b><span>On Progress</span></div>
+        </div>
+        <div class="dash-body">${barisHtml || '<div class="dash-empty">Tidak ada tiket aktif. Semua beres.</div>'}</div>
+      </div>`;
+      wrap.style.display = 'block';
+    } catch (e) { wrap.style.display = 'none'; }
+  }
+
+  async function loadDashboardRingkasan() {
+    const box = document.getElementById('dash-extra');
+    if (currentUser?.role === 'teknisi') { box.style.display = 'none'; return; }
+    try {
+      const res = await apiFetch(`${API}/dashboard/ringkasan`);
+      if (!res || !res.success) { box.style.display = 'none'; return; }
+      const d = res.data;
+      const warna = p => p >= 100 ? 'var(--red)' : 'var(--yellow)';
+      const odpHtml = d.odp_hampir_penuh.length ? d.odp_hampir_penuh.map(o => `
+        <div class="dash-bar-row" onclick="showODPDetailByKode('${String(o.kode).replace(/'/g, "\\'")}')">
+          <div class="dash-bar-top"><span><b>${escapeHtml(o.kode)}</b> <small>${escapeHtml(o.nama || '')}</small></span><span>${o.terpakai}/${o.kapasitas} <small>· sisa ${o.sisa}</small></span></div>
+          <div class="dash-bar"><i style="width:${Math.min(100, o.persen)}%;background:${warna(o.persen)}"></i></div>
+        </div>`).join('') : '<div class="dash-empty">Belum ada ODP yang hampir penuh.</div>';
+      const st = d.pelanggan_status || {}, totalP = Object.values(st).reduce((a, b) => a + b, 0);
+      const wSt = { Aktif: 'var(--green)', Nonaktif: 'var(--muted)', Isolir: 'var(--yellow)' };
+      const stHtml = totalP ? `<div class="dash-stack">${Object.entries(st).map(([k, v]) => `<i style="width:${v / totalP * 100}%;background:${wSt[k] || 'var(--accent2)'}" title="${k}: ${v}"></i>`).join('')}</div>
+        <div class="dash-legend">${Object.entries(st).map(([k, v]) => `<span><i style="background:${wSt[k] || 'var(--accent2)'}"></i>${escapeHtml(k)}<b>${v}</b> <small style="color:var(--muted)">${Math.round(v / totalP * 100)}%</small></span>`).join('')}</div>` : '<div class="dash-empty">Belum ada pelanggan.</div>';
+      const maxB = Math.max(1, ...d.pelanggan_per_bulan.map(b => b.jumlah));
+      const bulanHtml = `<div class="dash-cols">${d.pelanggan_per_bulan.map(b => `<div class="dash-col"><b>${b.jumlah}</b><i style="height:${b.jumlah ? Math.max(6, b.jumlah / maxB * 80) : 0}%"></i>${escapeHtml(b.label)}</div>`).join('')}</div>`;
+      const k = d.kelengkapan;
+      const ok = (label, n, page) => `<div class="dash-ok"><span>${label}</span><span style="display:flex;align-items:center;gap:10px"><span class="dash-pill ${n ? 'warn' : 'ok'}">${n ? n : 'OK'}</span>${n && page ? `<button class="dash-link" onclick="navigate('${page}')">Buka</button>` : ''}</span></div>`;
+      box.innerHTML = `
+        <div class="card"><div class="card-header"><div class="card-title">ODP Hampir Penuh</div><span style="font-size:0.8rem;color:var(--muted)">${d.odp_penuh_total} ODP ≥ 80%</span></div><div class="dash-body">${odpHtml}</div></div>
+        <div class="card"><div class="card-header"><div class="card-title">Pelanggan per Status</div></div><div class="dash-body">${stHtml}</div></div>
+        <div class="card"><div class="card-header"><div class="card-title">Kelengkapan Data</div></div><div class="dash-body">
+          ${ok('ODP tanpa koordinat', k.odp_tanpa_koordinat, 'odp')}
+          ${ok('Pelanggan tanpa koordinat', k.pelanggan_tanpa_koordinat, 'pelanggan')}
+          ${ok('Pelanggan tanpa foto rumah', k.pelanggan_tanpa_foto, 'pelanggan')}
+          ${ok('Pelanggan tanpa no. telepon', k.pelanggan_tanpa_telp, 'pelanggan')}
+        </div></div>
+        <div class="card"><div class="card-header"><div class="card-title">Pelanggan Baru (6 Bulan)</div></div><div class="dash-body">${bulanHtml}</div></div>`;
+      box.style.display = 'grid';
+    } catch (e) { box.style.display = 'none'; }
+  }
+
   async function loadDashboard() {
+    loadDashboardTiket(); loadDashboardRingkasan();
     const [statsRes, odcRes] = await Promise.all([
       apiFetch(`${API}/stats`),
       apiFetch(`${API}/odc`)
@@ -4040,7 +4508,7 @@ tr:hover td,body.light tr:hover td{background:var(--surface2)}
   function renderPelanggan(data) {
     const tbody = document.getElementById('pelanggan-table');
     if (!data.length) {
-      tbody.innerHTML = '<tr><td colspan="7"><div class="empty-state"><div class="icon"><svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1" stroke-linecap="round" stroke-linejoin="round" opacity="0.3"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg></div><p>Belum ada data pelanggan.</p></div></td></tr>';
+      tbody.innerHTML = '<tr><td colspan="6"><div class="empty-state"><div class="icon"><svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1" stroke-linecap="round" stroke-linejoin="round" opacity="0.3"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg></div><p>Belum ada data pelanggan.</p></div></td></tr>';
       if (typeof renderPelangganMobile === 'function') renderPelangganMobile([]);
       return;
     }
@@ -4051,7 +4519,6 @@ tr:hover td,body.light tr:hover td{background:var(--surface2)}
         <td><strong>${p.nama}</strong></td>
         <td style="color:var(--muted);font-size:0.85rem">${p.no_telp || '-'}</td>
         <td style="color:var(--muted);font-size:0.8rem">${p.odp_kode || '-'}<br/><small>${p.odp_nama || ''}</small></td>
-        <td style="color:var(--muted)">${p.port || '-'}</td>
         <td>${badge(p.status)}</td>
         <td>
           <div class="actions" style="justify-content:center">
@@ -4073,7 +4540,6 @@ tr:hover td,body.light tr:hover td{background:var(--surface2)}
     const body = {
       nama: document.getElementById('pel-nama').value,
       odp_id: document.getElementById('pel-odp-id').value,
-      port: document.getElementById('pel-port').value,
       no_telp: document.getElementById('pel-telp').value,
       koordinat_lat: document.getElementById('pel-lat').value,
       koordinat_lng: document.getElementById('pel-lng').value,
@@ -4084,8 +4550,54 @@ tr:hover td,body.light tr:hover td{background:var(--surface2)}
     const url = id ? `${API}/pelanggan/${id}` : `${API}/pelanggan`;
     const method = id ? 'PUT' : 'POST';
     const res = await apiFetch(url, { method, body: JSON.stringify(body) });
-    if (res.success) { toast(res.message); closeModal('pelanggan'); loadPelanggan(pelPagination.page); }
+    if (res.success) {
+      const pid = id || res.data?.id;
+      let fotoGagal = false;
+      try {
+        if (pid && fotoRumah.blob) {
+          const r = await apiFetch(`${API}/pelanggan/${pid}/foto`, { method: 'PUT', headers: { 'Content-Type': 'image/jpeg' }, body: fotoRumah.blob });
+          if (!r.success) fotoGagal = true;
+        } else if (pid && fotoRumah.hapus) {
+          await apiFetch(`${API}/pelanggan/${pid}/foto`, { method: 'DELETE' });
+        }
+      } catch (e) { fotoGagal = true; }
+      toast(fotoGagal ? 'Pelanggan tersimpan, tetapi foto rumah gagal diunggah. Buka Edit untuk mencoba lagi.' : res.message, fotoGagal ? 'error' : 'success');
+      closeModal('pelanggan'); loadPelanggan(pelPagination.page);
+    }
     else toast(res.message, 'error');
+  }
+
+  // ===== Foto rumah pelanggan =====
+  let fotoRumah = { blob: null, hapus: false, ada: false };
+  function resetFotoRumahForm(data) {
+    fotoRumah = { blob: null, hapus: false, ada: !!data?.foto_rumah };
+    const box = document.getElementById('pel-foto-box'), img = document.getElementById('pel-foto-preview');
+    img.removeAttribute('src'); box.style.display = 'none';
+    document.getElementById('pel-foto-btn').textContent = 'Ambil / Pilih Foto Rumah';
+    if (fotoRumah.ada && data?.id) {
+      fetch(`${API}/pelanggan/${data.id}/foto`, { headers: { Authorization: 'Bearer ' + getToken() } })
+        .then(r => r.ok ? r.blob() : null)
+        .then(b => { if (b && fotoRumah.ada && !fotoRumah.blob) { img.src = URL.createObjectURL(b); box.style.display = 'block'; document.getElementById('pel-foto-btn').textContent = 'Ganti Foto Rumah'; } })
+        .catch(() => {});
+    }
+  }
+  async function pilihFotoRumah(input) {
+    const f = input.files && input.files[0]; input.value = '';
+    if (!f) return;
+    if (!f.type.startsWith('image/')) { toast('File harus berupa gambar', 'error'); return; }
+    try {
+      fotoRumah.blob = await kompresFoto(f, 1280, 0.8, false); // false = tanpa cap waktu tiket
+      fotoRumah.hapus = false;
+      document.getElementById('pel-foto-preview').src = URL.createObjectURL(fotoRumah.blob);
+      document.getElementById('pel-foto-box').style.display = 'block';
+      document.getElementById('pel-foto-btn').textContent = 'Ganti Foto Rumah';
+    } catch (e) { toast(e.message || 'Gagal memproses foto', 'error'); }
+  }
+  function hapusFotoRumahForm() {
+    fotoRumah.blob = null; fotoRumah.hapus = fotoRumah.ada;
+    document.getElementById('pel-foto-preview').removeAttribute('src');
+    document.getElementById('pel-foto-box').style.display = 'none';
+    document.getElementById('pel-foto-btn').textContent = 'Ambil / Pilih Foto Rumah';
   }
 
   // Tampilkan ringkasan ONT yang dipilih di form Tambah/Edit Pelanggan
@@ -4172,9 +4684,20 @@ tr:hover td,body.light tr:hover td{background:var(--surface2)}
         <div style="font-size:0.78rem;color:var(--muted);text-transform:uppercase;letter-spacing:0.5px;margin-bottom:6px">Keterangan</div>
         <div style="font-size:0.875rem;color:var(--text);line-height:1.6;white-space:pre-wrap">${p.keterangan}</div>
       </div>` : ''}
+      ${p.foto_rumah ? `
+      <div style="padding:12px 14px;background:var(--surface2);border-radius:8px;border:1px solid var(--border)">
+        <div style="font-size:0.78rem;color:var(--muted);text-transform:uppercase;letter-spacing:0.5px;margin-bottom:8px">Foto Rumah</div>
+        <img id="pel-detail-foto" alt="Foto rumah" style="display:none;width:100%;max-height:300px;object-fit:cover;border-radius:8px;cursor:pointer" onclick="window.open(this.src,'_blank')" />
+      </div>` : ''}
       <div id="pel-detail-onu-section" style="display:flex;flex-direction:column;gap:8px"></div>
       <div style="font-size:0.75rem;color:var(--muted);text-align:right">Dibuat: ${new Date(p.created_at).toLocaleString('id-ID')}</div>
     `;
+    if (p.foto_rumah) {
+      fetch(`${API}/pelanggan/${p.id}/foto`, { headers: { Authorization: 'Bearer ' + getToken() } })
+        .then(r => r.ok ? r.blob() : null)
+        .then(b => { const el = document.getElementById('pel-detail-foto'); if (b && el) { el.src = URL.createObjectURL(b); el.style.display = 'block'; } })
+        .catch(() => {});
+    }
     document.getElementById('pel-detail-edit-btn').onclick = () => { closeModal('pel-detail'); openModal('pelanggan', p); };
     document.getElementById('modal-pel-detail').classList.add('show');
     // Tampilkan status ONT/ACS (termasuk redaman/RX Power) di modal Detail Pelanggan
@@ -5218,14 +5741,34 @@ tr:hover td,body.light tr:hover td{background:var(--surface2)}
         .tk-pel-item span{font-size:0.78rem;color:var(--muted)}
         .tk-pel-empty{padding:12px;color:var(--muted);font-size:0.85rem}
       </style>
-      <div class="form-group">
+      <div class="form-group"><label>Jenis Tiket</label>
+        <select class="form-control" id="tiket-jenis" onchange="gantiJenisTiket()">
+          <option value="gangguan">Gangguan pelanggan</option>
+          <option value="pemasangan">Pemasangan baru</option>
+        </select></div>
+      <div id="tiket-blok-pasang" style="display:none">
+        <div class="form-group"><label>Nama Calon Pelanggan *</label>
+          <input class="form-control" type="text" id="tiket-p-nama" autocomplete="off" placeholder="Nama lengkap" /></div>
+        <div class="form-group"><label>No. HP *</label>
+          <input class="form-control" type="tel" id="tiket-p-hp" autocomplete="off" placeholder="08xxxxxxxxxx" /></div>
+        <div class="form-group"><label>Alamat Pemasangan *</label>
+          <textarea class="form-control" id="tiket-p-alamat" rows="2" placeholder="Alamat lengkap lokasi pemasangan"></textarea></div>
+        <div class="form-group"><label>Link Google Maps (opsional)</label>
+          <div style="display:flex;gap:8px">
+            <input class="form-control" type="text" id="tiket-p-maps" autocomplete="off" placeholder="Tempel link Google Maps..." style="flex:1" />
+            <button type="button" class="btn btn-secondary" id="tiket-p-maps-btn" onclick="ambilKoordinatTiket()">Ambil</button>
+          </div>
+          <input type="hidden" id="tiket-p-lat" /><input type="hidden" id="tiket-p-lng" />
+          <div id="tiket-p-koordinat" style="display:none;margin-top:6px;font-size:0.8rem;color:var(--green)"></div></div>
+      </div>
+      <div class="form-group" id="tiket-blok-gangguan">
         <label>Pelanggan *</label>
         <input class="form-control" type="text" id="tiket-pel-search" autocomplete="off" placeholder="Ketik nama / no. pelanggan / no. HP..." oninput="onTiketPelInput()" />
         <div id="tiket-pel-list" onclick="const it=event.target.closest('.tk-pel-item'); if(it) pilihPelangganTiket(+it.dataset.i)"></div>
         <div id="tiket-pel-info" style="display:none;margin-top:6px;font-size:0.8rem;color:var(--green)"></div>
       </div>
       <div class="form-row">
-        <div class="form-group"><label>Kategori *</label>
+        <div class="form-group" id="tiket-grp-kategori"><label>Kategori *</label>
           <select class="form-control" id="tiket-kategori">
             <option>LOS</option><option>Internet lambat</option><option>Redaman tinggi</option>
             <option>Sering putus</option><option>Kabel / ONT rusak</option><option>Lainnya</option>
@@ -5235,8 +5778,11 @@ tr:hover td,body.light tr:hover td{background:var(--surface2)}
       </div>
       <div class="form-group"><label>Tugaskan ke Teknisi</label>
         <select class="form-control" id="tiket-tugas"><option value="">Terbuka untuk semua teknisi</option></select>
-        <div style="font-size:0.75rem;color:var(--muted);margin-top:4px">Jika dipilih, hanya teknisi tersebut yang bisa mengambil tiket ini.</div></div>
-      <div class="form-group"><label>Deskripsi</label>
+        <div style="font-size:0.75rem;color:var(--muted);margin-top:4px">Jika dipilih, hanya teknisi tersebut (dan rekannya) yang bisa mengambil tiket ini.</div></div>
+      <div class="form-group"><label>Teknisi Rekan (opsional)</label>
+        <select class="form-control" id="tiket-tugas2"><option value="">Tanpa rekan</option></select>
+        <div style="font-size:0.75rem;color:var(--muted);margin-top:4px">Salah satu dari keduanya mengambil tiket, yang lain menjadi rekan dan ikut bisa upload foto &amp; menutup tiket.</div></div>
+      <div class="form-group"><label id="tiket-lbl-deskripsi">Deskripsi</label>
         <textarea class="form-control" id="tiket-deskripsi" rows="3" placeholder="Detail keluhan..."></textarea></div>
     </div>
     <div class="modal-footer">

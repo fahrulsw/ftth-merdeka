@@ -12,6 +12,7 @@ const https = require('https');
 const http = require('http');
 const { URL } = require('url');
 const genieacs = require('./services/genieacsService');
+const mekariWa = require('./services/mekariWaService');
 
 const app = express();
 const PORT = 3001;
@@ -111,6 +112,15 @@ function adminMiddleware(req, res, next) {
   next();
 }
 
+// Middleware: admin & noc bisa kelola user. NOC dibatasi hanya untuk akun teknisi
+// (pembatasan target dilakukan di masing-masing route /api/users di bawah).
+function userManagerMiddleware(req, res, next) {
+  if (req.user.role !== 'admin' && req.user.role !== 'noc') {
+    return res.status(403).json({ success: false, message: 'Akses ditolak: hanya Admin/NOC yang dapat mengelola pengguna' });
+  }
+  next();
+}
+
 // ===================== AUTH ROUTES =====================
 
 // Login
@@ -170,13 +180,14 @@ app.put('/api/auth/password', authMiddleware, adminMiddleware, async (req, res) 
   }
 });
 
-// ===================== USER MANAGEMENT (Admin only) =====================
+// ===================== USER MANAGEMENT (Admin; NOC hanya akun teknisi) =====================
 
 // Get all users
-app.get('/api/users', authMiddleware, adminMiddleware, async (req, res) => {
+app.get('/api/users', authMiddleware, userManagerMiddleware, async (req, res) => {
   try {
     const db = await readDB();
-    const users = db.users.map(({ password, ...u }) => u); // hide password
+    let users = db.users.map(({ password, ...u }) => u); // hide password
+    if (req.user.role === 'noc') users = users.filter(u => u.role === 'teknisi'); // NOC hanya melihat teknisi
     res.json({ success: true, data: users });
   } catch (err) {
     res.status(500).json({ success: false, message: err.message });
@@ -184,17 +195,23 @@ app.get('/api/users', authMiddleware, adminMiddleware, async (req, res) => {
 });
 
 // Create user
-app.post('/api/users', authMiddleware, adminMiddleware, async (req, res) => {
+app.post('/api/users', authMiddleware, userManagerMiddleware, async (req, res) => {
   try {
-    const { username, nama, password, role } = req.body;
+    const { username, nama, password, role, no_wa } = req.body;
     if (!username || !nama || !password || !role) {
       return res.status(400).json({ success: false, message: 'Semua field wajib diisi' });
     }
     if (!['admin', 'noc', 'teknisi'].includes(role)) {
       return res.status(400).json({ success: false, message: 'Role tidak valid' });
     }
+    if (req.user.role === 'noc' && role !== 'teknisi') {
+      return res.status(403).json({ success: false, message: 'NOC hanya dapat membuat akun teknisi' });
+    }
     if (password.length < 6) {
       return res.status(400).json({ success: false, message: 'Password minimal 6 karakter' });
+    }
+    if (no_wa && !mekariWa.normalizeNumber(no_wa)) {
+      return res.status(400).json({ success: false, message: 'Nomor WhatsApp tidak valid (contoh: 081234567890)' });
     }
     const db = await readDB();
     if (db.users.find(u => u.username === username)) {
@@ -206,6 +223,7 @@ app.post('/api/users', authMiddleware, adminMiddleware, async (req, res) => {
       nama,
       password: await bcrypt.hash(password, 10),
       role,
+      no_wa: mekariWa.normalizeNumber(no_wa), // format 62xxxxxxxxxx, dipakai untuk notifikasi WhatsApp tiket
       aktif: true,
       created_at: new Date().toISOString()
     };
@@ -219,13 +237,16 @@ app.post('/api/users', authMiddleware, adminMiddleware, async (req, res) => {
 });
 
 // Update user
-app.put('/api/users/:id', authMiddleware, adminMiddleware, async (req, res) => {
+app.put('/api/users/:id', authMiddleware, userManagerMiddleware, async (req, res) => {
   try {
     const db = await readDB();
     const idx = db.users.findIndex(u => u.id === req.params.id);
     if (idx === -1) return res.status(404).json({ success: false, message: 'User tidak ditemukan' });
+    if (req.user.role === 'noc' && (db.users[idx].role !== 'teknisi' || (req.body.role && req.body.role !== 'teknisi'))) {
+      return res.status(403).json({ success: false, message: 'NOC hanya dapat mengubah akun teknisi' });
+    }
 
-    const { nama, role, aktif, password } = req.body;
+    const { nama, role, aktif, password, no_wa } = req.body;
     if (role && !['admin', 'noc', 'teknisi'].includes(role)) {
       return res.status(400).json({ success: false, message: 'Role tidak valid' });
     }
@@ -238,6 +259,11 @@ app.put('/api/users/:id', authMiddleware, adminMiddleware, async (req, res) => {
     if (nama) db.users[idx].nama = nama;
     if (role) db.users[idx].role = role;
     if (aktif !== undefined) db.users[idx].aktif = aktif;
+    if (no_wa !== undefined) {
+      const n = mekariWa.normalizeNumber(no_wa);
+      if (no_wa && !n) return res.status(400).json({ success: false, message: 'Nomor WhatsApp tidak valid (contoh: 081234567890)' });
+      db.users[idx].no_wa = n;
+    }
     if (password) {
       if (password.length < 6) return res.status(400).json({ success: false, message: 'Password minimal 6 karakter' });
       db.users[idx].password = await bcrypt.hash(password, 10);
@@ -253,7 +279,7 @@ app.put('/api/users/:id', authMiddleware, adminMiddleware, async (req, res) => {
 });
 
 // Delete user
-app.delete('/api/users/:id', authMiddleware, adminMiddleware, async (req, res) => {
+app.delete('/api/users/:id', authMiddleware, userManagerMiddleware, async (req, res) => {
   try {
     if (req.params.id === req.user.id) {
       return res.status(400).json({ success: false, message: 'Tidak dapat menghapus akun Anda sendiri' });
@@ -261,6 +287,9 @@ app.delete('/api/users/:id', authMiddleware, adminMiddleware, async (req, res) =
     const db = await readDB();
     const idx = db.users.findIndex(u => u.id === req.params.id);
     if (idx === -1) return res.status(404).json({ success: false, message: 'User tidak ditemukan' });
+    if (req.user.role === 'noc' && db.users[idx].role !== 'teknisi') {
+      return res.status(403).json({ success: false, message: 'NOC hanya dapat menghapus akun teknisi' });
+    }
     db.users.splice(idx, 1);
     await writeDB(db);
     res.json({ success: true, message: 'User berhasil dihapus' });
@@ -648,7 +677,54 @@ app.delete('/api/pelanggan/:id', authMiddleware, crudMiddleware, async (req, res
     if (index === -1) return res.status(404).json({ success: false, message: 'Pelanggan tidak ditemukan' });
     db.pelanggan.splice(index, 1);
     await writeDB(db);
+    fs.remove(fotoRumahPath(req.params.id)).catch(() => {});
     res.json({ success: true, message: 'Pelanggan berhasil dihapus' });
+  } catch (err) {
+    res.status(500).json({ success: false, message: err.message });
+  }
+});
+
+// ===================== FOTO RUMAH PELANGGAN =====================
+// Foto disimpan sebagai file di data/foto-rumah/<id>.jpg (bukan di database.json supaya tidak membengkak).
+// Body upload = biner gambar (Content-Type image/jpeg|png|webp). Foto lama otomatis tertimpa.
+const FOTO_RUMAH_DIR = path.join(__dirname, 'data', 'foto-rumah');
+function fotoRumahPath(id) { return path.join(FOTO_RUMAH_DIR, path.basename(String(id)) + '.jpg'); }
+
+app.put('/api/pelanggan/:id/foto', authMiddleware, crudMiddleware,
+  express.raw({ type: ['image/jpeg', 'image/png', 'image/webp'], limit: '8mb' }), async (req, res) => {
+  try {
+    const db = await readDB();
+    const index = db.pelanggan.findIndex(p => p.id === req.params.id);
+    if (index === -1) return res.status(404).json({ success: false, message: 'Pelanggan tidak ditemukan' });
+    if (!Buffer.isBuffer(req.body) || !req.body.length) {
+      return res.status(400).json({ success: false, message: 'Foto tidak valid (harus JPEG/PNG/WebP, maks 8 MB)' });
+    }
+    await fs.ensureDir(FOTO_RUMAH_DIR);
+    await fs.writeFile(fotoRumahPath(req.params.id), req.body);
+    db.pelanggan[index].foto_rumah = true;
+    db.pelanggan[index].foto_rumah_at = new Date().toISOString();
+    await writeDB(db);
+    res.json({ success: true, message: 'Foto rumah tersimpan' });
+  } catch (err) {
+    res.status(500).json({ success: false, message: err.message });
+  }
+});
+
+app.get('/api/pelanggan/:id/foto', authMiddleware, async (req, res) => {
+  const file = fotoRumahPath(req.params.id);
+  if (!(await fs.pathExists(file))) return res.status(404).json({ success: false, message: 'Foto belum ada' });
+  res.sendFile(file, { headers: { 'Cache-Control': 'private, max-age=300' } });
+});
+
+app.delete('/api/pelanggan/:id/foto', authMiddleware, crudMiddleware, async (req, res) => {
+  try {
+    const db = await readDB();
+    const p = db.pelanggan.find(x => x.id === req.params.id);
+    if (!p) return res.status(404).json({ success: false, message: 'Pelanggan tidak ditemukan' });
+    await fs.remove(fotoRumahPath(req.params.id));
+    p.foto_rumah = false;
+    await writeDB(db);
+    res.json({ success: true, message: 'Foto rumah dihapus' });
   } catch (err) {
     res.status(500).json({ success: false, message: err.message });
   }
@@ -802,12 +878,18 @@ app.post('/api/genieacs/pelanggan/:id/common', authMiddleware, crudMiddleware, a
 
 function extractLatLngFromText(text) {
   if (!text) return null;
+  // URUTAN PENTING: koordinat PIN (!3d..!4d.., q=, query=, ll=) harus dicoba dulu.
+  // Angka setelah "@" di URL Google Maps adalah titik TENGAH LAYAR peta (viewport), bukan titik pin,
+  // jadi sering meleset beberapa meter sampai ratusan meter. "@" hanya dipakai sebagai cadangan terakhir.
+  const NUM = '(-?\\d{1,3}\\.\\d+)';
+  const SEP = '(?:,|%2C)(?:\\+|%20|\\s)*'; // koma, boleh diikuti spasi/"+" (contoh: -6.95,+110.69)
   const patterns = [
-    /@(-?\d{1,3}\.\d+),(-?\d{1,3}\.\d+)/,          // .../@-8.123,115.567,17z
-    /!3d(-?\d{1,3}\.\d+)!4d(-?\d{1,3}\.\d+)/,       // parameter data ...!3d..!4d..
-    /[?&]q=(-?\d{1,3}\.\d+),(-?\d{1,3}\.\d+)/,      // ?q=-8.123,115.567
-    /[?&]ll=(-?\d{1,3}\.\d+),(-?\d{1,3}\.\d+)/,     // ?ll=-8.123,115.567
-    /\/(-?\d{1,3}\.\d+),(-?\d{1,3}\.\d+)(?:,|\/|$|\?)/ // fallback umum: /lat,lng
+    new RegExp('!3d' + NUM + '!4d' + NUM),                    // pin sebenarnya: ...!3d-8.123!4d115.567
+    new RegExp('[?&](?:q|query|destination)=' + NUM + '(?:,|%2C)\\s*' + NUM), // ?q=lat,lng / ?query=lat,lng
+    new RegExp('[?&]ll=' + NUM + ',' + NUM),                  // ?ll=lat,lng
+    new RegExp('/(?:place|search)/' + NUM + SEP + NUM),       // /place/lat,lng atau /search/lat,+lng (link pendek hasil pin)
+    new RegExp('/' + NUM + SEP + NUM + '(?:,|/|$|\\?)'),         // fallback umum: /lat,lng
+    new RegExp('@' + NUM + ',' + NUM)                         // titik tengah layar, cadangan terakhir
   ];
   for (const re of patterns) {
     const m = text.match(re);
@@ -1060,6 +1142,146 @@ app.get('/api/stats', authMiddleware, async (req, res) => {
     res.status(500).json({ success: false, message: err.message });
   }
 });
+
+// Ringkasan tambahan untuk dashboard: ODP hampir penuh, pelanggan per status, kelengkapan data, tren pelanggan baru.
+// Hanya membaca data (tidak mengubah apa pun), dan tidak tergantung fitur tiket.
+app.get('/api/dashboard/ringkasan', authMiddleware, async (req, res) => {
+  try {
+    const db = await readDB();
+    const ada = v => v !== undefined && v !== null && String(v).trim() !== '' && !isNaN(parseFloat(v));
+    const pakai = {};
+    db.pelanggan.forEach(p => { if (p.odp_id) pakai[p.odp_id] = (pakai[p.odp_id] || 0) + 1; });
+    const odcKode = Object.fromEntries(db.odc.map(o => [o.id, o.kode]));
+
+    const odpHitung = db.odp.map(o => {
+      const kap = parseInt(o.kapasitas) || 0, terpakai = pakai[o.id] || 0;
+      return { id: o.id, kode: o.kode, nama: o.nama, odc_kode: odcKode[o.odc_id] || '', kapasitas: kap, terpakai, sisa: Math.max(0, kap - terpakai), persen: kap > 0 ? Math.round(terpakai / kap * 100) : 0 };
+    });
+    const odp_hampir_penuh = odpHitung.filter(o => o.kapasitas > 0 && o.persen >= 80)
+      .sort((a, b) => b.persen - a.persen || a.sisa - b.sisa).slice(0, 8);
+    const odp_penuh_total = odpHitung.filter(o => o.kapasitas > 0 && o.persen >= 80).length;
+
+    const status = {};
+    db.pelanggan.forEach(p => { const k = p.status || 'Aktif'; status[k] = (status[k] || 0) + 1; });
+
+    const bulan = [];
+    const now = new Date();
+    for (let i = 5; i >= 0; i--) {
+      const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
+      bulan.push({ key: d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0'), label: d.toLocaleString('id-ID', { month: 'short' }), jumlah: 0 });
+    }
+    db.pelanggan.forEach(p => {
+      const d = p.created_at ? new Date(p.created_at) : null;
+      if (!d || isNaN(d)) return;
+      const key = d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0');
+      const b = bulan.find(x => x.key === key); if (b) b.jumlah++;
+    });
+
+    res.json({ success: true, data: {
+      odp_hampir_penuh, odp_penuh_total,
+      pelanggan_status: status,
+      pelanggan_per_bulan: bulan,
+      kelengkapan: {
+        odp_tanpa_koordinat: db.odp.filter(o => !(ada(o.koordinat_lat) && ada(o.koordinat_lng))).length,
+        pelanggan_tanpa_koordinat: db.pelanggan.filter(p => !(ada(p.koordinat_lat) && ada(p.koordinat_lng))).length,
+        pelanggan_tanpa_foto: db.pelanggan.filter(p => !p.foto_rumah).length,
+        pelanggan_tanpa_telp: db.pelanggan.filter(p => !p.no_telp || !String(p.no_telp).trim()).length
+      }
+    } });
+  } catch (err) {
+    res.status(500).json({ success: false, message: err.message });
+  }
+});
+
+// ===================== WHATSAPP (Mekari Qontak) =====================
+// Khusus admin: pengaturan akun Mekari (form di web), tes kirim, dan daftar channel/template
+app.get('/api/wa/settings', authMiddleware, adminMiddleware, (req, res) => {
+  res.json({ success: true, data: mekariWa.publicSettings() });
+});
+
+app.put('/api/wa/settings', authMiddleware, adminMiddleware, (req, res) => {
+  try {
+    const { enabled, client_id, client_secret, channel_id, tpl_pelanggan, tpl_teknisi, tpl_selesai } = req.body;
+    const idOk = v => v === undefined || v === '' || /^[\w.-]{4,100}$/.test(String(v).trim());
+    for (const [label, v] of [['Client ID', client_id], ['Channel ID', channel_id], ['Template Pelanggan', tpl_pelanggan], ['Template Teknisi', tpl_teknisi], ['Template Selesai', tpl_selesai]]) {
+      if (!idOk(v)) return res.status(400).json({ success: false, message: label + ' tidak valid (hanya huruf, angka, titik, strip, garis bawah)' });
+    }
+    if (client_secret && String(client_secret).length > 300) return res.status(400).json({ success: false, message: 'Client Secret terlalu panjang' });
+    mekariWa.saveSettings({ enabled: typeof enabled === 'boolean' ? enabled : undefined, client_id, client_secret, channel_id, tpl_pelanggan, tpl_teknisi, tpl_selesai });
+    res.json({ success: true, data: mekariWa.publicSettings(), message: 'Pengaturan WhatsApp disimpan' });
+  } catch (err) {
+    res.status(500).json({ success: false, message: err.message });
+  }
+});
+
+app.post('/api/wa/test', authMiddleware, adminMiddleware, async (req, res) => {
+  try {
+    const { no_wa, jenis = 'pelanggan' } = req.body;
+    if (!mekariWa.normalizeNumber(no_wa)) return res.status(400).json({ success: false, message: 'Nomor WhatsApp tidak valid' });
+    const contoh = {
+      id: 'TEST0001', kode: 'TKT-TES000000', pelanggan_nama: 'Pelanggan Contoh', pelanggan_no: 'PLG-001', pelanggan_hp: no_wa,
+      kategori: 'Internet Mati', prioritas: 'sedang', alamat: 'Jl. Contoh No. 1', deskripsi: 'Tes notifikasi tiket',
+      lat: '', lng: '', ditugaskan_nama: 'Teknisi Tes', teknisi_nama: 'Teknisi Tes',
+      waktu: new Date(Date.now() + 7 * 3600e3).toISOString().slice(0, 19).replace('T', ' ')
+    };
+    const out = jenis === 'teknisi'
+      ? await mekariWa.notifyTiketBaru({ ...contoh, pelanggan_hp: '' }, [{ nama: 'Teknisi Tes', no_wa }], { force: true })
+      : jenis === 'selesai'
+        ? await mekariWa.notifyTiketSelesai(contoh, 'Perangkat sudah diganti dan internet normal kembali', { force: true })
+        : await mekariWa.notifyTiketBaru(contoh, [], { force: true });
+    if (out.skipped) return res.status(400).json({ success: false, message: out.reason });
+    const gagal = out.results.find(r => !r.ok);
+    if (gagal) return res.status(502).json({ success: false, message: 'Gagal kirim: ' + gagal.error });
+    res.json({ success: true, message: 'Pesan tes terkirim ke ' + no_wa });
+  } catch (err) {
+    res.status(500).json({ success: false, message: err.message });
+  }
+});
+
+app.get('/api/wa/templates', authMiddleware, adminMiddleware, async (req, res) => {
+  try { res.json({ success: true, data: await mekariWa.listTemplates() }); }
+  catch (err) { res.status(502).json({ success: false, message: err.message }); }
+});
+
+app.get('/api/wa/channels', authMiddleware, adminMiddleware, async (req, res) => {
+  try { res.json({ success: true, data: await mekariWa.listChannels() }); }
+  catch (err) { res.status(502).json({ success: false, message: err.message }); }
+});
+
+// ===================== TIKET (+ notifikasi Telegram) =====================
+const tiketRouter = require('./tiket');
+// Parameter ke-2: pengambil daftar user (dipakai tiket.js untuk validasi teknisi yang ditugaskan)
+// Dipakai tiket.js saat tiket "Pemasangan Baru" di-close: calon pelanggan otomatis didaftarkan ke data Pelanggan.
+const pelangganOps = {
+  async buat({ nama, no_telp, alamat, koordinat_lat, koordinat_lng, odp_id, port, keterangan, created_by }) {
+    const db = await readDB();
+    const odp = db.odp.find(o => o.id === odp_id);
+    if (!odp) return { ok: false, message: 'ODP tidak ditemukan' };
+    const n = String(nama || '').trim().toLowerCase();
+    if (db.pelanggan.find(p => p.odp_id === odp_id && p.nama && p.nama.trim().toLowerCase() === n))
+      return { ok: false, message: `Pelanggan dengan nama "${nama}" sudah terdaftar di ODP ini` };
+    if (no_telp && db.pelanggan.find(p => p.no_telp && p.no_telp.trim() === String(no_telp).trim() && p.nama && p.nama.trim().toLowerCase() === n))
+      return { ok: false, message: `Pelanggan "${nama}" dengan No. Telepon "${no_telp}" sudah terdaftar` };
+    const baru = {
+      id: uuidv4(), nama: String(nama).trim(), no_pelanggan: '', odp_id,
+      port: port || '', alamat: alamat || '',
+      koordinat_lat: koordinat_lat || '', koordinat_lng: koordinat_lng || '',
+      no_telp: no_telp || '', paket: '', status: 'Aktif',
+      keterangan: keterangan || '', onu_device_id: '',
+      created_by: created_by || 'tiket',
+      created_at: new Date().toISOString(), updated_at: new Date().toISOString()
+    };
+    db.pelanggan.push(baru);
+    await writeDB(db);
+    return { ok: true, pelanggan: baru, odp };
+  },
+  async hapus(id) {
+    const db = await readDB();
+    db.pelanggan = db.pelanggan.filter(p => p.id !== id);
+    await writeDB(db);
+  }
+};
+app.use('/api/tiket', tiketRouter(authMiddleware, async () => (await readDB()).users, pelangganOps));
 
 // Start server
 initDB().then(() => {
