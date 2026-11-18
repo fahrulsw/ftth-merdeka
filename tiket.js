@@ -34,7 +34,7 @@ CREATE TABLE IF NOT EXISTS tiket_log (
 );`);
 
 // Migrasi: tambah kolom baru jika tiket.db dibuat dari versi sebelumnya
-for (const col of ['pelanggan_no', 'alamat', 'lat', 'lng', 'foto_progress', 'ditugaskan_ke', 'ditugaskan_nama', 'ditugaskan_ke2', 'ditugaskan_nama2', 'foto_selesai', 'foto_sn', 'jenis', 'odp_id', 'port']) {
+for (const col of ['pelanggan_no', 'alamat', 'lat', 'lng', 'foto_progress', 'ditugaskan_ke', 'ditugaskan_nama', 'ditugaskan_ke2', 'ditugaskan_nama2', 'foto_selesai', 'foto_sn', 'jenis', 'odp_id', 'port', 'close_lat', 'close_lng', 'close_akurasi']) {
   if (!db.prepare('PRAGMA table_info(tiket)').all().some(c => c.name === col)) db.exec(`ALTER TABLE tiket ADD COLUMN ${col} TEXT`);
 }
 
@@ -276,7 +276,7 @@ module.exports = function (auth, getUsers, pelangganOps) {
     if (tugas.length) log(info.lastInsertRowid, 'Ditugaskan ke ' + tugas.map(u => u.nama).join(' & '), req.user);
     const t = get(info.lastInsertRowid);
     kirimTelegram(
-      (pasang ? kepala('', '🎫 PEMASANGAN BARU', t) : kepala('', '🎫 TIKET BARU', t)) + infoLengkap(t) +
+      (pasang ? kepala('', 'PEMASANGAN BARU', t) : kepala('', 'TIKET BARU', t)) + infoLengkap(t) +
       (t.deskripsi ? `\n<b>${pasang ? 'Catatan' : 'Keluhan'}:</b>\n${esc(potong(t.deskripsi, 500))}\n` : '') +
       `\n<b>Ditugaskan ke:</b> ${esc(namaTugas(t) || 'Terbuka untuk semua teknisi')}\n` +
       baris('', 'Dibuat oleh', t.dibuat_oleh_nama) + waktuTeks(t.created_at),
@@ -322,7 +322,7 @@ module.exports = function (auth, getUsers, pelangganOps) {
     if (!c.changes) return res.status(409).json({ success: false, message: 'Tiket sudah diambil atau tidak ditemukan' });
     log(req.params.id, 'Tiket diambil', req.user);
     const t = get(req.params.id);
-    kirimTelegram(kepala('', '👨‍🔧 TIKET DIAMBIL', t) + ringkas(t) + `\n<b>Teknisi:</b> ${esc(timTeks(t))}\n` + waktuTeks(t.updated_at), tombolTiket(t));
+    kirimTelegram(kepala('', 'TIKET DIAMBIL', t) + ringkas(t) + `\n<b>Teknisi:</b> ${esc(timTeks(t))}\n` + waktuTeks(t.updated_at), tombolTiket(t));
     res.json({ success: true, data: out(t) });
   });
 
@@ -340,7 +340,7 @@ module.exports = function (auth, getUsers, pelangganOps) {
     if (!c.changes) { fs.unlink(path.join(fotoDir, nama), () => {}); return res.status(409).json({ success: false, message: 'Status tiket sudah berubah, muat ulang halaman' }); }
     log(t0.id, 'On progress', req.user, 'Foto pekerjaan dilampirkan');
     const t = get(t0.id);
-    kirimTelegram(kepala('', '🛠 TIKET ON PROGRESS', t) + ringkas(t) + `\n<b>Teknisi:</b> ${esc(timTeks(t))}
+    kirimTelegram(kepala('', 'TIKET ON PROGRESS', t) + ringkas(t) + `\n<b>Teknisi:</b> ${esc(timTeks(t))}
 ` + waktuTeks(t.updated_at), [], { buf: req.body, ...img });
     res.json({ success: true, data: out(t) });
   });
@@ -385,6 +385,12 @@ module.exports = function (auth, getUsers, pelangganOps) {
       if (!catatan) return res.status(400).json({ success: false, message: 'Catatan penyelesaian wajib diisi' });
       const img = Buffer.isBuffer(req.body) && req.body.length ? jenisGambar(req.body) : null;
       if (!img) return res.status(400).json({ success: false, message: 'Foto penyelesaian wajib dilampirkan (JPG/PNG/WEBP)' });
+      // Lokasi teknisi saat menutup tiket (tombol "Lokasi saya") wajib ada dan masuk akal.
+      const cLat = parseFloat(req.headers['x-lat']), cLng = parseFloat(req.headers['x-lng']);
+      const cAkr = Math.round(parseFloat(req.headers['x-akurasi']));
+      if (!Number.isFinite(cLat) || !Number.isFinite(cLng) || Math.abs(cLat) > 90 || Math.abs(cLng) > 180 || (cLat === 0 && cLng === 0)) {
+        return res.status(400).json({ success: false, message: 'Lokasi wajib diisi: tekan tombol "Lokasi saya" sebelum menutup tiket' });
+      }
       const t0 = get(req.params.id);
       if (!t0 || t0.status !== 'progress' || !bolehKerja(t0, req.user)) return res.status(409).json({ success: false, message: 'Tidak bisa menutup tiket ini' });
 
@@ -406,19 +412,19 @@ module.exports = function (auth, getUsers, pelangganOps) {
       const nama = `${t0.id}-selesai-${Date.now()}.${img.ext}`;
       fs.writeFileSync(path.join(fotoDir, nama), req.body);
       const c = pasang
-        ? db.prepare(`UPDATE tiket SET status='closed', foto_selesai=?, pelanggan_id=?, odp_id=?, odp_nama=?, port=?, updated_at=datetime('now') WHERE id=? AND status='progress'`).run(nama, pel.id, odp.id, `${odp.kode} — ${odp.nama}`, port, t0.id)
-        : db.prepare(`UPDATE tiket SET status='closed', foto_selesai=?, updated_at=datetime('now') WHERE id=? AND status='progress'`).run(nama, t0.id);
+        ? db.prepare(`UPDATE tiket SET status='closed', foto_selesai=?, pelanggan_id=?, odp_id=?, odp_nama=?, port=?, close_lat=?, close_lng=?, close_akurasi=?, updated_at=datetime('now') WHERE id=? AND status='progress'`).run(nama, pel.id, odp.id, `${odp.kode} — ${odp.nama}`, port, String(cLat), String(cLng), Number.isFinite(cAkr) ? String(cAkr) : '', t0.id)
+        : db.prepare(`UPDATE tiket SET status='closed', foto_selesai=?, close_lat=?, close_lng=?, close_akurasi=?, updated_at=datetime('now') WHERE id=? AND status='progress'`).run(nama, String(cLat), String(cLng), Number.isFinite(cAkr) ? String(cAkr) : '', t0.id);
       if (!c.changes) {
         fs.unlink(path.join(fotoDir, nama), () => {});
         if (pel) await pelangganOps.hapus(pel.id); // batalkan pendaftaran pelanggan jika status tiket keburu berubah
         return res.status(409).json({ success: false, message: 'Tidak bisa menutup tiket ini' });
       }
-      log(t0.id, 'Tiket ditutup', req.user, catatan + '\n(Foto penyelesaian dilampirkan)');
+      log(t0.id, 'Tiket ditutup', req.user, catatan + `\n(Foto penyelesaian dilampirkan. Lokasi: ${cLat.toFixed(6)}, ${cLng.toFixed(6)}${Number.isFinite(cAkr) ? ', akurasi ±' + cAkr + ' m' : ''})`);
       if (pel) log(t0.id, 'Pelanggan baru terdaftar', { nama: 'Sistem' }, `${pel.nama} — ODP ${odp.kode}${port ? ', port ' + port : ''}`);
       const t = get(t0.id);
-      kirimTelegram(kepala('', pasang ? '✅ PEMASANGAN SELESAI' : '✅ TIKET SELESAI', t) + ringkas(t) +
+      kirimTelegram(kepala('', pasang ? 'PEMASANGAN SELESAI' : 'TIKET SELESAI', t) + ringkas(t) +
         (pasang ? baris('', 'Port', port) + 'Terdaftar sebagai pelanggan baru\n' : '') +
-        `\n<b>Teknisi:</b> ${esc(timTeks(t))}\n<b>Catatan:</b> ${esc(potong(catatan, 250))}
+        `\n<b>Teknisi:</b> ${esc(timTeks(t))}\n<b>Catatan:</b> ${esc(potong(catatan, 250))}\n<b>Lokasi penutupan:</b> <a href="https://www.google.com/maps?q=${cLat},${cLng}">Buka di Google Maps</a>${Number.isFinite(cAkr) ? ' (akurasi ±' + cAkr + ' m)' : ''}
 ` + waktuTeks(t.updated_at), [], { buf: req.body, ...img });
       if (!pasang) kirimWaSelesai(t, catatan);
       res.json({ success: true, data: out(t) });

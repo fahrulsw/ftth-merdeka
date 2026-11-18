@@ -1959,11 +1959,15 @@ tr:hover td,body.light tr:hover td{background:var(--surface2)}
       <div class="form-group">
         <label>Foto Rumah</label>
         <input type="file" id="pel-foto-input" accept="image/*" style="display:none" onchange="pilihFotoRumah(this)" />
-        <div id="pel-foto-box" style="display:none;position:relative;border:1px solid var(--border);border-radius:10px;overflow:hidden;background:var(--surface2)">
-          <img id="pel-foto-preview" alt="Foto rumah" style="display:block;width:100%;max-height:220px;object-fit:cover" />
-          <button type="button" class="btn btn-danger btn-sm" onclick="hapusFotoRumahForm()" style="position:absolute;top:8px;right:8px">Hapus foto</button>
+        <div style="display:flex;align-items:center;gap:12px">
+          <div id="pel-foto-box" style="display:none;flex:0 0 auto">
+            <img id="pel-foto-preview" alt="Foto rumah" title="Klik untuk memperbesar" onclick="if(this.src)window.open(this.src,'_blank')" style="display:block;width:84px;height:84px;object-fit:cover;border-radius:10px;border:1px solid var(--border);cursor:zoom-in;background:var(--surface2)" />
+          </div>
+          <div style="display:flex;flex-direction:column;gap:6px;flex:1;min-width:0">
+            <button type="button" class="btn btn-ghost btn-sm" id="pel-foto-btn" onclick="document.getElementById('pel-foto-input').click()" style="justify-content:center">Ambil / Pilih Foto Rumah</button>
+            <button type="button" class="btn btn-danger btn-sm" id="pel-foto-hapus" onclick="hapusFotoRumahForm()" style="display:none;justify-content:center">Hapus foto</button>
+          </div>
         </div>
-        <button type="button" class="btn btn-ghost" id="pel-foto-btn" onclick="document.getElementById('pel-foto-input').click()" style="width:100%;justify-content:center">Ambil / Pilih Foto Rumah</button>
       </div>
       <div class="form-group">
         <label>Link Maps <span style="cursor:help;color:var(--muted);font-weight:400;border:1px solid var(--border);border-radius:50%;padding:0 6px;font-size:0.72rem" title="Tempel link Google Maps di sini (bisa link pendek seperti maps.app.goo.gl/xxxx atau link lengkap maps.google.com/...), lalu klik &quot;Ambil Koordinat&quot;. Koordinat Lintang & Bujur di bawah akan terisi otomatis.">?</span></label>
@@ -2878,7 +2882,7 @@ tr:hover td,body.light tr:hover td{background:var(--surface2)}
   async function openTiketDetail(id) {
     const res = await apiFetch(`${API}/tiket/${id}`);
     if (!res.success) { toast(res.message || 'Gagal memuat tiket', 'error'); return; }
-    tiketFotoFile = null;
+    tiketFotoFile = null; lokasiTutup = null;
     const t = res.data;
     tiketAktifKode = t.kode;
     const mine = isAdmin() || t.teknisi_id === currentUser?.id || t.rekan_id === currentUser?.id;
@@ -2901,6 +2905,10 @@ tr:hover td,body.light tr:hover td{background:var(--surface2)}
       <input class="form-control" type="text" id="tiket-port" autocomplete="off" style="margin-top:8px" placeholder="Port ODP (opsional, mis. 3)" />
       <div style="font-size:0.75rem;color:var(--muted);margin:4px 0 12px">Setelah tiket ditutup, calon pelanggan otomatis terdaftar di menu Pelanggan pada ODP ini.</div>` : ''}
       ${tkFotoPicker('Foto penyelesaian *')}
+      <div style="margin-top:8px;display:flex;align-items:center;gap:10px;flex-wrap:wrap">
+        <button type="button" class="btn btn-ghost" id="btn-lokasi" onclick="ambilLokasiTutup()">Lokasi saya *</button>
+        <span id="lokasi-status" style="font-size:0.8rem;color:var(--muted)">Belum diambil. Wajib sebelum menutup tiket.</span>
+      </div>
       <textarea class="form-control" id="tiket-catatan" rows="2" style="margin-top:8px" placeholder="Catatan penyelesaian *"></textarea>
       <button class="btn btn-primary" id="btn-close" style="margin-top:8px" onclick="tutupTiket('${t.id}')">Close Tiket</button>`;
     document.getElementById('tiket-detail-title').textContent = t.kode;
@@ -2943,6 +2951,7 @@ tr:hover td,body.light tr:hover td{background:var(--surface2)}
       ${adaFoto ? `<div><div class="tkd-sub">Foto</div><div class="tkd-fotos">
         ${foto(t.ada_foto, 'tiket-foto-view', 'Pekerjaan')}${foto(t.ada_foto_sn, 'tiket-foto-sn-view', 'SN modem')}${foto(t.ada_foto_selesai, 'tiket-foto-selesai-view', 'Penyelesaian')}
       </div></div>` : ''}
+      ${(t.close_lat && t.close_lng) ? `<div><div class="tkd-sub">Lokasi penutupan</div><a href="https://www.google.com/maps?q=${encodeURIComponent(t.close_lat)},${encodeURIComponent(t.close_lng)}" target="_blank" rel="noopener" style="color:var(--accent);font-size:0.88rem">Buka di Google Maps</a>${t.close_akurasi ? ` <span style="color:var(--muted);font-size:0.8rem">(akurasi ±${escapeHtml(t.close_akurasi)} m)</span>` : ''}</div>` : ''}
       ${aksiMode === 'kartu' ? `<section class="tkd-aksi">${aksiJudul ? `<div class="tkd-aksi-t">${aksiJudul}</div>` : ''}${aksi}</section>`
         : aksiMode === 'solo' ? `<div class="tkd-solo">${aksi}</div>`
         : aksiMode === 'info' ? `<div class="tkd-info">${aksi}</div>` : ''}
@@ -3068,11 +3077,34 @@ tr:hover td,body.light tr:hover td{background:var(--surface2)}
     return allOdpData.find(o => (o.kode + ' — ' + o.nama).toLowerCase() === v) || allOdpData.find(o => String(o.kode).toLowerCase() === v) || null;
   }
 
+  // Lokasi teknisi saat menutup tiket (wajib). Diambil dari GPS perangkat, butuh HTTPS dan izin lokasi.
+  let lokasiTutup = null;
+  function ambilLokasiTutup() {
+    const btn = document.getElementById('btn-lokasi'), st = document.getElementById('lokasi-status');
+    if (!navigator.geolocation) { st.style.color = 'var(--red)'; st.textContent = 'Perangkat/browser ini tidak mendukung lokasi.'; return; }
+    btn.disabled = true; btn.textContent = 'Mencari lokasi...'; st.style.color = 'var(--muted)'; st.textContent = 'Menunggu sinyal GPS (maks. 20 detik)...';
+    navigator.geolocation.getCurrentPosition(pos => {
+      lokasiTutup = { lat: pos.coords.latitude, lng: pos.coords.longitude, akurasi: pos.coords.accuracy };
+      const akr = Math.round(pos.coords.accuracy || 0), kurang = akr > 100;
+      st.style.color = kurang ? 'var(--yellow)' : 'var(--green)';
+      st.textContent = `Lokasi terkunci (akurasi ±${akr} m)` + (kurang ? '. Kurang akurat, coba lagi di tempat terbuka.' : '');
+      btn.disabled = false; btn.textContent = 'Perbarui lokasi';
+    }, err => {
+      lokasiTutup = null;
+      st.style.color = 'var(--red)';
+      st.textContent = err.code === 1 ? 'Izin lokasi ditolak. Aktifkan izin lokasi untuk situs ini di pengaturan browser, lalu coba lagi.'
+        : err.code === 3 ? 'Waktu habis, sinyal GPS lemah. Pindah ke tempat terbuka lalu coba lagi.' : 'Lokasi tidak tersedia. Nyalakan GPS lalu coba lagi.';
+      btn.disabled = false; btn.textContent = 'Lokasi saya *';
+    }, { enableHighAccuracy: true, timeout: 20000, maximumAge: 0 });
+  }
+
   async function tutupTiket(id) {
     const catatan = document.getElementById('tiket-catatan').value.trim();
     if (!tiketFotoFile) { toast('Foto penyelesaian wajib dilampirkan', 'error'); return; }
     if (!catatan) { toast('Catatan penyelesaian wajib diisi', 'error'); return; }
-    const headers = { 'Content-Type': 'image/jpeg', 'X-Catatan': encodeURIComponent(catatan.slice(0, 500)) };
+    if (!lokasiTutup) { toast('Tekan tombol "Lokasi saya" dulu. Lokasi wajib diisi', 'error'); return; }
+    const headers = { 'Content-Type': 'image/jpeg', 'X-Catatan': encodeURIComponent(catatan.slice(0, 500)),
+      'X-Lat': String(lokasiTutup.lat), 'X-Lng': String(lokasiTutup.lng), 'X-Akurasi': String(Math.round(lokasiTutup.akurasi || 0)) };
     if (document.getElementById('tiket-odp-input')) { // tiket pemasangan baru
       const odp = cariOdpTiket(document.getElementById('tiket-odp-input').value);
       const port = document.getElementById('tiket-port').value.trim();
@@ -4572,12 +4604,12 @@ tr:hover td,body.light tr:hover td{background:var(--surface2)}
   function resetFotoRumahForm(data) {
     fotoRumah = { blob: null, hapus: false, ada: !!data?.foto_rumah };
     const box = document.getElementById('pel-foto-box'), img = document.getElementById('pel-foto-preview');
-    img.removeAttribute('src'); box.style.display = 'none';
+    img.removeAttribute('src'); box.style.display = 'none'; document.getElementById('pel-foto-hapus').style.display = 'none';
     document.getElementById('pel-foto-btn').textContent = 'Ambil / Pilih Foto Rumah';
     if (fotoRumah.ada && data?.id) {
       fetch(`${API}/pelanggan/${data.id}/foto`, { headers: { Authorization: 'Bearer ' + getToken() } })
         .then(r => r.ok ? r.blob() : null)
-        .then(b => { if (b && fotoRumah.ada && !fotoRumah.blob) { img.src = URL.createObjectURL(b); box.style.display = 'block'; document.getElementById('pel-foto-btn').textContent = 'Ganti Foto Rumah'; } })
+        .then(b => { if (b && fotoRumah.ada && !fotoRumah.blob) { img.src = URL.createObjectURL(b); box.style.display = 'block'; document.getElementById('pel-foto-hapus').style.display = 'flex'; document.getElementById('pel-foto-btn').textContent = 'Ganti Foto Rumah'; } })
         .catch(() => {});
     }
   }
@@ -4590,6 +4622,7 @@ tr:hover td,body.light tr:hover td{background:var(--surface2)}
       fotoRumah.hapus = false;
       document.getElementById('pel-foto-preview').src = URL.createObjectURL(fotoRumah.blob);
       document.getElementById('pel-foto-box').style.display = 'block';
+      document.getElementById('pel-foto-hapus').style.display = 'flex';
       document.getElementById('pel-foto-btn').textContent = 'Ganti Foto Rumah';
     } catch (e) { toast(e.message || 'Gagal memproses foto', 'error'); }
   }
@@ -4597,6 +4630,7 @@ tr:hover td,body.light tr:hover td{background:var(--surface2)}
     fotoRumah.blob = null; fotoRumah.hapus = fotoRumah.ada;
     document.getElementById('pel-foto-preview').removeAttribute('src');
     document.getElementById('pel-foto-box').style.display = 'none';
+    document.getElementById('pel-foto-hapus').style.display = 'none';
     document.getElementById('pel-foto-btn').textContent = 'Ambil / Pilih Foto Rumah';
   }
 
@@ -4687,7 +4721,7 @@ tr:hover td,body.light tr:hover td{background:var(--surface2)}
       ${p.foto_rumah ? `
       <div style="padding:12px 14px;background:var(--surface2);border-radius:8px;border:1px solid var(--border)">
         <div style="font-size:0.78rem;color:var(--muted);text-transform:uppercase;letter-spacing:0.5px;margin-bottom:8px">Foto Rumah</div>
-        <img id="pel-detail-foto" alt="Foto rumah" style="display:none;width:100%;max-height:300px;object-fit:cover;border-radius:8px;cursor:pointer" onclick="window.open(this.src,'_blank')" />
+        <img id="pel-detail-foto" alt="Foto rumah" title="Klik untuk memperbesar" style="display:none;width:120px;height:120px;object-fit:cover;border-radius:10px;border:1px solid var(--border);cursor:zoom-in" onclick="window.open(this.src,'_blank')" />
       </div>` : ''}
       <div id="pel-detail-onu-section" style="display:flex;flex-direction:column;gap:8px"></div>
       <div style="font-size:0.75rem;color:var(--muted);text-align:right">Dibuat: ${new Date(p.created_at).toLocaleString('id-ID')}</div>
